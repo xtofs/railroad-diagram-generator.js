@@ -1,0 +1,8 @@
+; Simple arithmetic expression grammar for testing
+; Based on common expression grammar examples
+
+expression = term ["+" expression]
+term = factor ["*" term]  
+factor = number / "(" expression ")"
+number = 1*DIGIT
+DIGIT = %x30-39

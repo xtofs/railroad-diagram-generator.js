@@ -1,0 +1,34 @@
+{
+  "name": "abnf-to-railroad",
+  "version": "1.0.0",
+  "description": "Command line tool to convert ABNF grammar files to HTML with railroad diagrams",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "bin": {
+    "abnf-to-railroad": "./bin/cli.js"
+  },
+  "scripts": {
+    "generate": "node bin/cli.js",
+    "test": "node test/test.js",
+    "dev": "node bin/cli.js"
+  },
+  "keywords": [
+    "abnf",
+    "railroad",
+    "diagram",
+    "grammar",
+    "syntax",
+    "html"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "fs-extra": "^11.0.0",
+    "handlebars": "^4.7.8"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

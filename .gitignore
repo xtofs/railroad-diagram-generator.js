@@ -1,0 +1,19 @@
+node_modules/
+*.log
+.DS_Store
+.vscode/
+.idea/
+dist/
+build/
+coverage/
+.nyc_output/
+*.tmp
+*.temp
+
+# Generated output files - don't commit these
+*-output.html
+
+test-cli-output.html
+**/*-output.html
+**/*-generated.html
+**/*-diagram.html
