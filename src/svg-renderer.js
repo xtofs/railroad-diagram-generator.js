@@ -14,16 +14,16 @@ class RenderContext {
     /**
      * Create a render context
      * @param {number} gridSize - Grid size in pixels
-     * @param {number} terminalRadius - Radius for terminal circles
+     * @param {number} endpointRadius - Radius for start/end endpoint circles
      * @param {number} textBoxRadius - Border radius for text boxes
      */
-    constructor(gridSize, terminalRadius, textBoxRadius) {
+    constructor(gridSize, endpointRadius, textBoxRadius) {
         /** @type {string} Accumulated SVG markup */
         this.svg = '';
         /** @type {number} Grid size in pixels */
         this.gridSize = gridSize;
-        /** @type {number} Terminal radius */
-        this.terminalRadius = terminalRadius;
+        /** @type {number} Start/end endpoint radius */
+        this.endpointRadius = endpointRadius;
         /** @type {number} Text box border radius */
         this.textBoxRadius = textBoxRadius;
         /** @type {RailPathBuilder} Track builder using grid units */
@@ -74,15 +74,15 @@ class RenderContext {
     }
 
     /**
-     * Add a terminal circle at the specified grid coordinates
+     * Add a start/end endpoint circle at the specified grid coordinates
      * @param {number} gridX - X position in grid units
      * @param {number} gridY - Y position in grid units
-     * @param {'start'|'end'} terminalType - Type of terminal
+     * @param {'start'|'end'} endpointType - Type of endpoint
      */
-    addTerminal(gridX, gridY, terminalType) {
+    addEndpoint(gridX, gridY, endpointType) {
         const x = gridX * this.gridSize;
         const y = gridY * this.gridSize;
-        this.svg += `<circle cx="${x}" cy="${y}" r="${this.terminalRadius}" class="${terminalType}-terminal"/>`;
+        this.svg += `<circle cx="${x}" cy="${y}" r="${this.endpointRadius}" class="${endpointType}-endpoint"/>`;
     }
 
     /**
@@ -111,7 +111,7 @@ class RenderContext {
         this.svg += groupTag;
         
         // Create a new context for the child that starts at (0,0)
-        const childContext = new RenderContext(this.gridSize, this.terminalRadius, this.textBoxRadius);
+        const childContext = new RenderContext(this.gridSize, this.endpointRadius, this.textBoxRadius);
         
         // Render child in its own coordinate space
         child.render(childContext);
@@ -151,7 +151,7 @@ class RenderContext {
  * @property {number} fontSize - Font size in pixels
  * @property {number} trackWidth - Track width in pixels
  * @property {number} textBorder - Text border width in pixels
- * @property {number} terminalRadius - Border radius for terminal circles
+ * @property {number} endpointRadius - Border radius for start/end endpoint circles
  * @property {number} textBoxRadius - Border radius for text boxes
  */
 
@@ -506,8 +506,8 @@ class SVGRenderer {
         this.trackWidth = 6;
         /** @type {number} Text border width in pixels */
         this.textBorder = 3;
-        /** @type {number} Border radius for terminal circles */
-        this.terminalRadius = this.gridSize * 0.9;
+        /** @type {number} Border radius for start/end endpoint circles */
+        this.endpointRadius = this.gridSize * 0.9;
         /** @type {number} Border radius for text boxes */
         this.textBoxRadius = this.gridSize * 0.6;
     }
@@ -567,30 +567,30 @@ class SVGRenderer {
         let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
 
         // Create new RenderContext instance
-        const ctx = new RenderContext(this.gridSize, this.terminalRadius, this.textBoxRadius);
+        const ctx = new RenderContext(this.gridSize, this.endpointRadius, this.textBoxRadius);
 
-        // Add start terminal at grid coordinates
+        // Add start endpoint at grid coordinates
         const startX = 1; // 1 grid unit from left edge
         const startY = 1 + expression.baseline; // At baseline position
-        ctx.addTerminal(startX, startY, 'start');
+        ctx.addEndpoint(startX, startY, 'start');
 
         // Render main expression at grid coordinates (2, 1) to leave padding
         ctx.renderChild(expression, 2, 1, 'main-expression', { rule: ruleName });
 
-        // Add end terminal at grid coordinates
+        // Add end endpoint at grid coordinates
         const endX = 2 + expression.width + 1; // After expression + 1 grid unit
         const endY = 1 + expression.baseline; // At baseline position
-        ctx.addTerminal(endX, endY, 'end');
+        ctx.addEndpoint(endX, endY, 'end');
 
-        // Add connecting tracks between terminals and expression
+        // Add connecting tracks between endpoints and expression
         ctx.trackBuilder
-            .start(startX + 0.25, startY, Direction.EAST) // Start just after terminal circle
+            .start(startX + 0.25, startY, Direction.EAST) // Start just after start endpoint circle
             .forward(0.75) // Connect to expression
             .finish('start-connection');
         
         ctx.trackBuilder
             .start(2 + expression.width, startY, Direction.EAST) // Start after expression
-            .forward(0.75) // Connect to end terminal
+            .forward(0.75) // Connect to end endpoint
             .finish('end-connection');
 
         svg += ctx.svg;

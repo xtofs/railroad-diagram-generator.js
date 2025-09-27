@@ -48,28 +48,27 @@
                 pattern.setAttribute('height', gridSize);
                 
                 // Create thin grid lines
-                // Horizontal line at top
-                const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                hLine.setAttribute('x1', '0');
-                hLine.setAttribute('y1', '0');
-                hLine.setAttribute('x2', gridSize);
-                hLine.setAttribute('y2', '0');
-                hLine.setAttribute('stroke', 'hotpink');
-                hLine.setAttribute('stroke-width', '0.5');
-                hLine.setAttribute('opacity', '0.3');
+                function createGridLine(x1, y1, x2, y2) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', x1);
+                    line.setAttribute('y1', y1);
+                    line.setAttribute('x2', x2);
+                    line.setAttribute('y2', y2);
+                    line.setAttribute('stroke', 'hotpink');
+                    line.setAttribute('stroke-width', '0.5');
+                    line.setAttribute('opacity', '0.3');
+                    pattern.appendChild(line);
+                }
+
+                // Create horizontal lines
+                createGridLine(0, 0, 5, 0);
+                createGridLine(gridSize-5, 0, gridSize, 0);
                 
-                // Vertical line at left
-                const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                vLine.setAttribute('x1', '0');
-                vLine.setAttribute('y1', '0');
-                vLine.setAttribute('x2', '0');
-                vLine.setAttribute('y2', gridSize);
-                vLine.setAttribute('stroke', 'hotpink');
-                vLine.setAttribute('stroke-width', '0.5');
-                vLine.setAttribute('opacity', '0.3');
+                // Create vertical line
+                createGridLine(0, 0, 0, 5);
+                createGridLine(0, gridSize-5, 0, gridSize);
                 
-                pattern.appendChild(hLine);
-                pattern.appendChild(vLine);
+             
                 defs.appendChild(pattern);
                 
                 // Create background rectangle and append at end
