@@ -1,0 +1,66 @@
+; Simplified OData ABNF Grammar
+; Based on OData v4.01 Construction Rules but with standard ABNF syntax
+
+; Basic OData URI Structure
+odataUri = scheme "://" host [ ":" port ] "/" serviceRoot "/" odataRelativeUri
+
+serviceRoot = 1*pchar
+odataRelativeUri = resourcePath [ "?" queryOptions ]
+
+; Resource Path
+resourcePath = entitySetName [ keyPredicate ] [ "/" singleNavigation ]
+entitySetName = odataIdentifier
+keyPredicate = "(" keyValuePair ")"
+keyValuePair = odataIdentifier "=" keyValue
+keyValue = quotedValue / unquotedValue
+quotedValue = "'" *qchar "'"
+unquotedValue = 1*unreserved
+
+; Navigation
+singleNavigation = entityTypeName / propertyName / specialSegment
+entityTypeName = odataIdentifier
+propertyName = odataIdentifier  
+specialSegment = count / value / ref
+count = "$count"
+value = "$value"
+ref = "$ref"
+
+; Query Options
+queryOptions = queryOption *( "&" queryOption )
+queryOption = filter / select / orderby / skip / top
+filter = "$filter=" boolExpression
+select = "$select=" selectList
+orderby = "$orderby=" orderList
+skip = "$skip=" 1*DIGIT
+top = "$top=" 1*DIGIT
+
+; Expressions
+boolExpression = "true" / "false" / comparison
+comparison = propertyName " eq " literalValue
+selectList = selectItem *( "," selectItem )
+selectItem = propertyName / "*"
+orderList = orderItem *( "," orderItem )
+orderItem = propertyName [ " " sortDirection ]
+sortDirection = "asc" / "desc"
+
+; Literals and Identifiers
+literalValue = stringValue / numberValue / boolValue
+stringValue = "'" *qchar "'"
+numberValue = [ "-" ] 1*DIGIT [ "." 1*DIGIT ]
+boolValue = "true" / "false"
+
+odataIdentifier = ALPHA *( ALPHA / DIGIT / "_" )
+
+; Characters
+qchar = unreserved / ":" / "@" / "!" / "$" / "&" / "*" / "+" / "," / ";" / "="
+unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+pchar = unreserved / ":" / "@" / "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+
+; Basic rules
+scheme = "http" / "https"
+host = 1*( ALPHA / DIGIT / "." / "-" )
+port = 1*DIGIT
+
+; ABNF Core Rules  
+ALPHA = %x41-5A / %x61-7A
+DIGIT = %x30-39

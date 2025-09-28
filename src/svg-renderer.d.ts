@@ -213,7 +213,7 @@ export declare class SVGRenderer {
    * @param rules Parsed ABNF rules
    * @returns Map of rule names to SVG content
    */
-  renderAllSVGs(rules: Map<string, { original: string; railroad: DiagramElement }>): Promise<Map<string, string>>;
+  renderAllSVGs(rules: Map<string, { name: string; original: string; expression: DiagramElement }>): Promise<Map<string, string>>;
 }
 
 export default SVGRenderer;

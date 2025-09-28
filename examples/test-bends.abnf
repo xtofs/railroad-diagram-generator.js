@@ -1,0 +1,2 @@
+choice-test = "option1" / "option2" / "option3"
+mixed-test = "start" [ "optional" ] ( "choice1" / "choice2" ) "end"

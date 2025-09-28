@@ -1,0 +1,26 @@
+; ABNF for ABNF (RFC5234, RFC7405)
+; This is a simplified version for parser testing
+rulelist    =  1*( rule / (*c-wsp c-nl) )
+rule        =  rulename defined-as elements c-nl
+rulename    =  ALPHA *(ALPHA / DIGIT / "-")
+elements    =  alternation
+alternation =  concatenation *("/" concatenation)
+concatenation = repetition *(1*c-wsp repetition)
+repetition  =  [repeat] element
+repeat      =  1*DIGIT / ( 1*DIGIT "*" [1*DIGIT] )
+element     =  rulename / group / option / char-val / num-val / prose-val
+group       =  "(" *c-wsp alternation *c-wsp ")"
+option      =  "[" *c-wsp alternation *c-wsp "]"
+char-val    =  DQUOTE *(%x20-21 / %x23-7E) DQUOTE
+num-val     =  "%" ( bin-val / dec-val / hex-val )
+prose-val   =  "<" *(%x20-3D / %x3F-7E) ">"
+c-wsp       =  WSP / (c-nl WSP)
+c-nl        =  comment / CRLF
+defined-as  =  "=" / "=/"
+comment     =  ";" *(WSP / VCHAR) CRLF
+ALPHA       =  %x41-5A / %x61-7A
+DIGIT       =  %x30-39
+DQUOTE      =  %x22
+WSP         =  %x20 / %x09
+VCHAR       =  %x21-7E
+CRLF        =  %x0D.0A / %x0A

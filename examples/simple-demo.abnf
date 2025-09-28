@@ -1,0 +1,8 @@
+; Simple ABNF demo grammar
+simple-rule = "hello" / "world"
+multi-line  = "start"
+              "middle"
+              "end"
+complex     = 1*3( "prefix" 
+                   [ "optional" ]
+                   "suffix" )

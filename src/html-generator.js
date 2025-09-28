@@ -84,6 +84,28 @@ class HTMLGenerator {
     }
 
     /**
+     * Generate HTML from enriched rules (contains SVG already)
+     * @param {Map<string, EnrichedRule>} enrichedRules - Rules with embedded SVG content
+     * @param {string} [title='Grammar Syntax Diagrams'] - Document title
+     * @returns {Promise<string>} Complete HTML document
+     */
+    async generateHTMLFromEnrichedRules(enrichedRules, title = 'Grammar Syntax Diagrams') {
+        await this.loadAssets(); // Ensure assets are loaded
+
+        const rulesArray = Array.from(enrichedRules.values()).map(rule => ({
+            name: rule.name,
+            original: rule.original,
+            svg: rule.svg
+        }));
+
+        return this.template({
+            title: this.escapeHtml(title),
+            cssContent: this.cssContent,
+            rules: rulesArray
+        });
+    }
+
+    /**
      * Escape HTML special characters for safe output
      * @param {string} str - Input string to escape
      * @returns {string} HTML-escaped string

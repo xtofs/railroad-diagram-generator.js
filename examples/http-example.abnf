@@ -1,0 +1,12 @@
+; HTTP Method Grammar (simplified)
+method = "GET" / "POST" / "PUT" / "DELETE" / "PATCH"
+uri = scheme "://" host [":" port] path ["?" query]
+scheme = "http" / "https"
+host = 1*(ALPHA / DIGIT / "." / "-")
+port = 1*4DIGIT
+path = "/" *path-char
+path-char = ALPHA / DIGIT / "/" / "-" / "_" / "."
+query = param *("&" param)
+param = name "=" value
+name = 1*(ALPHA / DIGIT / "-" / "_")
+value = *(ALPHA / DIGIT / "-" / "_" / "%" HEXDIG HEXDIG)

@@ -1,0 +1,4 @@
+sequence-repeat = 1*( "prefix" DIGIT "suffix" )
+choice-repeat = 1*( "option1" / "option2" / "option3" )
+mixed-repeat = 1*( "start" [ "optional" ] ( "choice1" / "choice2" ) )
+complex-repeat = 1*( identifier "=" value [ ";" ] )

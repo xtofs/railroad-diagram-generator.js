@@ -1,0 +1,39 @@
+; JSON ABNF grammar (RFC 8259)
+
+JSON-text = ws value ws
+
+value = false / null / true / object / array / number / string
+
+false = "false"
+null  = "null"
+true  = "true"
+
+object = begin-object [ member *( value-separator member ) ] end-object
+member = ws string ws name-separator ws value
+array  = begin-array [ value *( value-separator value ) ] end-array
+
+begin-object = "{"
+end-object   = "}"
+begin-array = "["
+end-array   = "]"
+name-separator = ":"
+value-separator = ","
+
+string = quotation-mark *char quotation-mark
+quotation-mark = '"'
+char = unescaped / escape ( '"' / "\\" / "/" / "b" / "f" / "n" / "r" / "t" / "u" hex )
+unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
+escape = "\\"
+hex = 4HEXDIG
+
+number = [ minus ] int [ frac ] [ exp ]
+minus = "-"
+int = zero / ( digit1-9 *digit )
+zero = "0"
+digit1-9 = %x31-39 ; "1"-"9"
+digit = %x30-39 ; "0"-"9"
+frac = "." 1*digit
+exp = ( "e" / "E" ) [ minus / plus ] 1*digit
+plus = "+"
+ws = *( %x20 / %x09 / %x0A / %x0D )
+HEXDIG = %x30-39 / %x41-46 / %x61-66 ; 0-9 / A-F / a-f

@@ -42,7 +42,7 @@ class ABNFToRailroad {
     /**
      * Parse ABNF file and return the AST
      * @param {string} inputFile - Path to ABNF file
-     * @returns {Promise<Map<string, {original: string, railroad: string}>>} Parsed rules map
+     * @returns {Promise<Map<string, {name: string, original: string, expression: ASTNode}>>} Parsed rules map
      * @throws {Error} If file cannot be read or no valid rules found
      */
     async parse(inputFile) {
@@ -62,19 +62,43 @@ class ABNFToRailroad {
 
     /**
      * Convert parsed rules to HTML with embedded SVG diagrams
-     * @param {Map<string, {original: string, railroad: string}>} rules - Parsed ABNF rules
+     * @param {Map<string, {name: string, original: string, expression: ASTNode}>} rules - Parsed ABNF rules
      * @param {string} outputFile - Path for output HTML file
      * @param {ConversionOptions} [options={}] - Generation options
      * @returns {Promise<ConversionResult>} Conversion result
      */
     async convertFromAST(rules, outputFile, options = {}) {
-        // Generate SVG for each rule
         console.log('Rendering SVG diagrams...');
-        const svgContent = await this.renderer.renderAllSVGs(rules);
         
-        // Generate HTML
+        // Transform: Map<name, ParsedRule> → Map<name, EnrichedRule>
+        const enrichedRules = new Map();
+        
+        for (const [name, rule] of rules) {
+            try {
+                // Generate SVG for this rule
+                const svg = this.renderer.renderSVG(rule.expression, name);
+                
+                // Create enriched rule with all data in one place
+                enrichedRules.set(name, {
+                    name: rule.name,
+                    original: rule.original,
+                    expression: rule.expression,
+                    svg: svg
+                });
+            } catch (error) {
+                console.error(`Error rendering SVG for rule ${name}:`, error);
+                enrichedRules.set(name, {
+                    name: rule.name,
+                    original: rule.original,
+                    expression: rule.expression,
+                    svg: `<p>Error rendering diagram for rule: ${name}</p>`
+                });
+            }
+        }
+        
+        // Generate HTML from enriched rules
         const title = options.title || 'Grammar Syntax Diagrams';
-        const html = await this.generator.generateHTML(rules, title, svgContent);
+        const html = await this.generator.generateHTMLFromEnrichedRules(enrichedRules, title);
         
         // Write output file
         console.log(`Writing HTML file: ${outputFile}`);
@@ -83,7 +107,7 @@ class ABNFToRailroad {
         console.log('Conversion completed successfully!');
         return {
             success: true,
-            rulesCount: rules.size,
+            rulesCount: enrichedRules.size,
             outputFile
         };
     }

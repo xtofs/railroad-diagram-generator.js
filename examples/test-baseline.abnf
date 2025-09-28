@@ -1,0 +1,4 @@
+simple-rule = "hello" / "world"
+complex-rule = optional-part [ "middle" ] required-part
+optional-part = "start"
+required-part = "end"

@@ -15,7 +15,7 @@ const { createCanvas } = require('canvas');
  * @returns {{width: number, height: number}} Text dimensions in pixels
  */
 function measureText(text, fontSize = 14, fontFamily = 'monospace') {
-    const canvas = createCanvas(1, 1); // Minimal canvas for measurement only
+    const canvas = createCanvas(1, 1); // Minimal canvas for measurement
     const ctx = canvas.getContext('2d');
     ctx.font = `${fontSize}px ${fontFamily}`;
     const metrics = ctx.measureText(text);
@@ -549,6 +549,17 @@ class SVGRenderer {
      * @throws {Error} If element type is unknown
      */
     createExpression(element) {
+        if (!element) {
+            console.error('DEBUG: createExpression called with undefined element');
+            console.trace('Stack trace:');
+            throw new Error('Element is undefined in createExpression');
+        }
+        if (!element.type) {
+            console.error('DEBUG: createExpression called with element missing type property:', element);
+            console.trace('Stack trace:');
+            throw new Error('Element.type is undefined in createExpression');
+        }
+        
         switch (element.type) {
             case 'textBox':
                 return new TextBoxExpression(element.text, element.boxType, this.fontSize, this.fontFamily, this.gridSize);
@@ -572,6 +583,7 @@ class SVGRenderer {
      * @returns {string} SVG markup or error message
      */
     renderSVG(diagramElement, ruleName = 'unknown') {
+        console.log(`DEBUG renderSVG: Rule ${ruleName}, diagramElement:`, diagramElement === undefined ? 'UNDEFINED' : diagramElement.type || 'NO_TYPE');
         try {
             // Create expression tree directly from the diagram element
             const expression = this.createExpression(diagramElement);
@@ -650,26 +662,6 @@ class SVGRenderer {
         });
     }
 
-    /**
-     * Render multiple railroad diagrams from parsed ABNF rules
-     * @param {Map<string, {original: string, railroad: DiagramElement}>} rules - Parsed ABNF rules
-     * @returns {Promise<Map<string, string>>} Map of rule names to SVG content
-     */
-    async renderAllSVGs(rules) {
-        const svgMap = new Map();
-
-        for (const [ruleName, ruleData] of rules) {
-            try {
-                const svg = this.renderSVG(ruleData.railroad, ruleName);
-                svgMap.set(ruleName, svg);
-            } catch (error) {
-                console.error(`Failed to render SVG for rule ${ruleName}:`, error);
-                svgMap.set(ruleName, `<p>Error rendering diagram for rule: ${ruleName}</p>`);
-            }
-        }
-
-        return svgMap;
-    }
 }
 
 module.exports = SVGRenderer;

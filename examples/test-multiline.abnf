@@ -1,0 +1,30 @@
+; Test file with multi-line ABNF rules
+; This tests the parser's ability to distinguish between rule boundaries and continuation lines
+
+; Simple single-line rule
+simple-rule = "hello" CRLF
+
+; Multi-line rule with alternation spanning lines
+multi-line-alt = "option1" /
+                 "option2" /
+                 "option3"
+
+; Multi-line rule with concatenation
+multi-line-concat = "start" 
+                   "middle"
+                   "end"
+
+; Multi-line rule with complex structure
+complex-rule = ( "group1" /
+                 "group2" ) 
+               [ "optional" 
+                 "part" ]
+               1*DIGIT
+
+; Rule with comments on continuation lines
+rule-with-comments = "begin"  ; start here
+                     "continue"  ; keep going
+                     "finish"    ; end here
+
+; Another simple rule to test boundary detection
+final-rule = "done"
