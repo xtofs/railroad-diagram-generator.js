@@ -23,11 +23,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "canvas": "^3.2.0",
     "commander": "^11.0.0",
     "fs-extra": "^11.0.0",
     "handlebars": "^4.7.8"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=14.0.0"
   }

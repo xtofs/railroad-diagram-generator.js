@@ -5,6 +5,26 @@
  */
 
 const { RailPathBuilder, Direction } = require('./rail-path-builder');
+const { createCanvas } = require('canvas');
+
+/**
+ * Measure text dimensions using Canvas API for accurate sizing
+ * @param {string} text - Text to measure
+ * @param {number} fontSize - Font size in pixels
+ * @param {string} fontFamily - Font family name
+ * @returns {{width: number, height: number}} Text dimensions in pixels
+ */
+function measureText(text, fontSize = 14, fontFamily = 'monospace') {
+    const canvas = createCanvas(1, 1); // Minimal canvas for measurement only
+    const ctx = canvas.getContext('2d');
+    ctx.font = `${fontSize}px ${fontFamily}`;
+    const metrics = ctx.measureText(text);
+    
+    return {
+        width: metrics.width,
+        height: fontSize * 1.2 // Standard line height approximation
+    };
+}
 
 /**
  * RenderContext provides methods for adding SVG elements using grid units
@@ -52,10 +72,10 @@ class RenderContext {
         // Draw box at relative (0,0) within group - CSS classes handle styling differences
         this.svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="${this.textBoxRadius}" class="textbox ${boxType}"/>`;
         
-        // Draw text centered in box
+        // Draw text centered in box - SVG text centering
         const textX = w / 2;
         const textY = h / 2;
-        this.svg += `<text x="${textX}" y="${textY}" class="textbox-text ${boxType}">${this.escapeXml(text)}</text>`;
+        this.svg += `<text x="${textX}" y="${textY}" text-anchor="middle" dominant-baseline="middle" class="textbox-text ${boxType}">${this.escapeXml(text)}</text>`;
         
         // Add connecting tracks
         const leftTrack = this.trackBuilder
@@ -202,19 +222,27 @@ class TextBoxExpression extends Expression {
      * Create a text box expression
      * @param {string} text - Text to display in the box
      * @param {'terminal'|'nonterminal'} [boxType='nonterminal'] - Type of text box
+     * @param {number} [fontSize=14] - Font size in pixels
+     * @param {string} [fontFamily='monospace'] - Font family
+     * @param {number} [gridSize=16] - Grid size in pixels
      */
-    constructor(text, boxType = 'nonterminal') {
+    constructor(text, boxType = 'nonterminal', fontSize = 14, fontFamily = 'monospace', gridSize = 16) {
         super();
         /** @type {string} */
         this.text = text;
         /** @type {'terminal'|'nonterminal'} */
         this.boxType = boxType;
 
-        // Calculate layout dimensions based on text length
-        const textLength = this.text.length;
-        this.width = Math.max(4, Math.ceil(textLength * 0.6) + 2); // Grid units
-        this.height = 3; // Grid units
-        this.baseline = Math.floor(this.height / 2);
+        // Measure actual text dimensions using canvas
+        const textMetrics = measureText(this.text, fontSize, fontFamily);
+        
+        // Convert text width to grid units with padding
+        const textWidthInGrids = Math.ceil(textMetrics.width / gridSize);
+        const minWidth = textWidthInGrids + 2; // Add padding (1 grid unit each side)
+        
+        this.width = Math.max(4, minWidth + (minWidth % 2)); // Round up to nearest even number, minimum 4
+        this.height = 2; // Fixed height of 2 grid units for proper rail connection
+        this.baseline = 1; // Baseline at center (1 grid unit from top/bottom)
     }
 
     /**
@@ -502,6 +530,8 @@ class SVGRenderer {
         this.gridSize = 16;
         /** @type {number} Font size in pixels */
         this.fontSize = 14;
+        /** @type {string} Font family for text measurement and rendering */
+        this.fontFamily = 'monospace';
         /** @type {number} Track width in pixels */
         this.trackWidth = 6;
         /** @type {number} Text border width in pixels */
@@ -521,7 +551,7 @@ class SVGRenderer {
     createExpression(element) {
         switch (element.type) {
             case 'textBox':
-                return new TextBoxExpression(element.text, element.boxType);
+                return new TextBoxExpression(element.text, element.boxType, this.fontSize, this.fontFamily, this.gridSize);
             case 'sequence':
                 return new SequenceExpression(element.elements.map(el => this.createExpression(el)));
             case 'stack':
