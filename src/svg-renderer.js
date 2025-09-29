@@ -623,7 +623,6 @@ class SVGRenderer {
      * @returns {string} SVG markup or error message
      */
     renderSVG(diagramElement, ruleName = 'unknown') {
-        console.log(`DEBUG renderSVG: Rule ${ruleName}, diagramElement:`, diagramElement === undefined ? 'UNDEFINED' : diagramElement.type || 'NO_TYPE');
         try {
             // Create expression tree directly from the diagram element
             const expression = this.createExpression(diagramElement);

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABNF Railroad Diagrams - Index</title>
+</head>
+<body>
+    <h1>ABNF Railroad Diagrams</h1>
+    
+    {{#if files}}
+    <ul>
+        {{#each files}}
+        <li><a href="{{htmlFile}}">{{name}}</a> ({{ruleCount}} rules)</li>
+        {{/each}}
+    </ul>
+    {{else}}
+    <p>No grammar files have been processed yet.</p>
+    {{/if}}
+    
+    <p><small>Generated on {{generatedTime}}</small></p>
+</body>
+</html>
