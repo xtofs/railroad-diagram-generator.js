@@ -11,5 +11,5 @@ coverage/
 *.temp
 
 # Generated output files - don't commit these
+*.html
 **/*.html
-examples/*.html

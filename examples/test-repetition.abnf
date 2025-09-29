@@ -1,2 +1,0 @@
-simple-repeat = 1*"a"
-multiple-repeat = "start" 1*DIGIT "end"

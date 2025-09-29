@@ -1,2 +1,0 @@
-; Test both RFC 5234 and RFC 7405 syntax
-test = "case-insensitive" / 'case-sensitive'
