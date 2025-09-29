@@ -27,8 +27,10 @@ program
         const converter = new ABNFToRailroad();
         // Determine output filename
         if (!output) {
+            // Put output file in same directory as input file
+            const inputDir = path.dirname(input);
             const inputName = path.basename(input, path.extname(input));
-            output = inputName + '.html';
+            output = path.join(inputDir, inputName + '.html');
         }
         // Convert to absolute paths
         const inputPath = path.resolve(input);

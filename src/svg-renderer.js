@@ -634,8 +634,8 @@ class SVGRenderer {
      * @returns {string} Complete SVG markup
      */
     generateSVG(expression, ruleName) {
-        const width = (expression.width + 6) * this.gridSize; // 1 + 2 + expression + 2 + 1 = 6 padding
-        const height = (expression.height + 2) * this.gridSize; // Add padding
+        const width = (expression.width + 6) * this.gridSize + 1; // 1 + 2 + expression + 2 + 1 = 6 padding + 1 pixel for pattern lines
+        const height = (expression.height + 2) * this.gridSize + 1; // Add padding + 1 pixel for pattern lines
 
         let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
 
