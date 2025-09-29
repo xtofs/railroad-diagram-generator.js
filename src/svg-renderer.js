@@ -11,7 +11,10 @@ const { createCanvas } = require('canvas');
  * Measure text dimensions using Canvas API for accurate sizing
  * @param {string} text - Text to measure
  * @param {number} fontSize - Font size in pixels
- * @param {string} fontFamily - Font family name
+ * @param                 ctx.trackBuilder
+                    .start(xOffset + child.width, this.baseline, Direction.EAST)
+                    .forward(this.width - (xOffset + child.width)) // go to stack boundary
+                    .finish(`child${i}-right`);ing} fontFamily - Font family name
  * @returns {{width: number, height: number}} Text dimensions in pixels
  */
 function measureText(text, fontSize = 14, fontFamily = 'monospace') {
@@ -373,7 +376,7 @@ class StackExpression extends Expression {
             totalHeight += this.children[i].height;
         }
 
-        this.width = maxWidth + 4; // Add 2 units each side for quarter circles
+        this.width = 2 + maxWidth + 2; // 2 units left rail space + max child width + 2 units right rail space
         this.height = totalHeight;
         this.baseline = this.children[0].baseline; // Use first child's baseline
     }
@@ -385,9 +388,8 @@ class StackExpression extends Expression {
         const maxWidth = Math.max(...this.children.map(child => child.width));
         
         this.children.forEach((child, i) => {
-            // Each child gets its own centering offset based on its width
-            const dx = Math.floor((maxWidth - child.width) / 2); // half width difference for THIS child
-            const xOffset = 2 + dx; // 2 units for left rail space + THIS child's centering offset
+            // Each child centered within the stack's content area
+            const xOffset = 2 + (maxWidth - child.width) / 2; // 2 units left rail space + centering offset
             const childBaseline = currentY + child.baseline;
             
             // Render child using RenderContext
@@ -398,35 +400,34 @@ class StackExpression extends Expression {
                 // First child: straight through on main baseline
                 ctx.trackBuilder
                     .start(0, this.baseline, Direction.EAST)
-                    .forward(xOffset)
+                    .forward(xOffset) // go directly to child start position
                     .finish(`child${i}-left`);
                 
                 ctx.trackBuilder
                     .start(xOffset + child.width, this.baseline, Direction.EAST)
-                    .forward(this.width - (xOffset + child.width))
+                    .forward(2) // go to right rail boundary
                     .finish(`child${i}-right`);
             } else {
                 // Other children: handle width centering and vertical routing
                 const dy = childBaseline - this.baseline; // vertical distance
                 
-                // Left side: route down to child with width adjustment for THIS child
+                // Left side: immediate turn down at x=0, then route east to child
                 ctx.trackBuilder
                     .start(0, this.baseline, Direction.EAST)
-                    .forward(dx) // center THIS child
-                    .turnRight()
+                    .turnRight() // immediately turn south at x=0
                     .forward(dy - 2) // -2 for the quarter circles
-                    .turnLeft()
-                    .forward(2) // 2 units to child start
+                    .turnLeft() // turn east toward child (SOUTH → EAST is counterclockwise)
+                    .forward(xOffset - 2) // the two turns already provide 2 units horizontal displacement
                     .finish(`child${i}-left`);
                 
                 // Right side: route from child exit back to stack baseline
                 ctx.trackBuilder
-                    .start(xOffset + child.width + 2, childBaseline, Direction.EAST)
-                    .forward(2) // 2 units from child end
+                    .start(xOffset + child.width, childBaseline, Direction.EAST)
+                    .forward(0) // child ends at its centered position + width
                     .turnLeft() // Turn UP (north) to return to baseline
                     .forward(dy - 2) // -2 for the quarter circles  
                     .turnLeft()
-                    .forward(this.width - (xOffset + child.width + 4)) // to stack edge
+                    .forward(this.width - (xOffset + child.width)) // to stack edge
                     .finish(`child${i}-right`);
             }
             
