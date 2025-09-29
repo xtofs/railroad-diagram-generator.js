@@ -57,8 +57,8 @@ foreach ($abnfFile in $abnfFiles) {
         if ($LASTEXITCODE -eq 0) {
             $relativeOutput = Resolve-Path -Path $outputPath -Relative
             
-            # Try to extract rule count from output
-            if ($result -match "(\d+) rules") {
+            # Try to extract rule count from output (safely handle null result)
+            if ($result -and ($result -join " ") -match "(\d+) rules") {
                 $ruleCount = $matches[1]
                 Write-Host "  ✅ Generated: $relativeOutput ($ruleCount rules)" -ForegroundColor $SuccessColor
             } else {
@@ -68,8 +68,9 @@ foreach ($abnfFile in $abnfFiles) {
             $successCount++
         } else {
             Write-Host "  ❌ Failed to generate HTML" -ForegroundColor $ErrorColor
-            if ($Verbose) {
-                Write-Host "  Error output: $result" -ForegroundColor "Gray"
+            if ($Verbose -and $result) {
+                $resultStr = if ($result -is [array]) { $result -join " " } else { $result.ToString() }
+                Write-Host "  Error output: $resultStr" -ForegroundColor "Gray"
             }
             $failureCount++
         }

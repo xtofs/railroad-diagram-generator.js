@@ -42,11 +42,13 @@ class ABNFTokenizer {
             // String literals with optional case sensitivity prefixes
             '(?<string>(?:%[si])?"(?:[^"\\\\]|\\\\.)*")',
             "(?<sstring>(?:%[si])?'(?:[^'\\\\]|\\\\.)*')",
-            // Hex/decimal values
-            '(?<hexval>%x[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+)?)',
-            '(?<decval>%d[0-9]+(?:-[0-9]+)?)',
-            // Repetition counts
-            '(?<repetition>[0-9]*\\*[0-9]*)',
+            // Hex/decimal values (including concatenation with dots)
+            '(?<hexval>%x[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]+)*(?:-[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]+)*)?)',
+            '(?<decval>%d[0-9]+(?:\\.[0-9]+)*(?:-[0-9]+(?:\\.[0-9]+)*)?)',
+            // Repetition counts (must come before standalone *)
+            '(?<repetition>[0-9]+\\*[0-9]*|[0-9]*\\*[0-9]+)',
+            // Standalone asterisk for zero-or-more
+            '(?<asterisk>\\*)',
             // Identifiers (rule names)
             '(?<identifier>[a-zA-Z][a-zA-Z0-9-]*)',
             // Operators and delimiters
@@ -301,12 +303,25 @@ class ABNFParser {
                 max = repMatch[2] ? parseInt(repMatch[2]) : null;
             }
             index++;
+        } else if (index < tokens.length && tokens[index].type === 'asterisk') {
+            // Standalone * means zero or more
+            hasRepetition = true;
+            min = 0;
+            max = null;
+            index++;
         } else if (index < tokens.length && tokens[index].type === 'number') {
-            // Check for number followed by *
+            const num = parseInt(tokens[index].value);
+            // Check for number followed by * (like "1*")
             if (index + 1 < tokens.length && tokens[index + 1].value === '*') {
                 hasRepetition = true;
-                min = parseInt(tokens[index].value);
+                min = num;
                 index += 2; // Skip number and *
+            } else {
+                // Check for exact count repetition (like "4HEXDIG")
+                hasRepetition = true;
+                min = num;
+                max = num;
+                index++; // Skip just the number
             }
         }
 
