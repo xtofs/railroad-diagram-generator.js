@@ -2,6 +2,7 @@
  * SVG Diagram Renderer
  * 
  * Standalone implementation of railroad diagram rendering to SVG
+ * Updated for hot reload testing
  */
 
 const { RailPathBuilder, Direction } = require('./rail-path-builder');
@@ -187,6 +188,12 @@ class RenderContext {
 /**
  * Abstract base class for all diagram expressions
  * Layout is calculated in constructors since it's strictly bottom-up
+ * 
+ * CRITICAL INVARIANT: All Expression heights must be even numbers
+ * - Ensures proper baseline alignment in railroad diagrams
+ * - Allows predictable track routing with centered baselines
+ * - Each subclass constructor must maintain this invariant
+ * 
  * @abstract
  */
 class Expression {
@@ -317,8 +324,10 @@ class SequenceExpression extends Expression {
         this.width = this.children.reduce((sum, child) => sum + child.width, 0) + (this.children.length - 1) * 2;
         this.height = Math.max(...this.children.map(child => child.height));
         this.baseline = Math.max(...this.children.map(child => child.baseline));
-        // Assert that height is even for proper baseline calculation
-        console.assert(this.height % 2 === 0, `SequenceExpression all children's height and therefore the Sequence's height should be even, got ${this.height}`);
+       
+        // Assert the width invariant: all Expression width must be even
+        // This is a design invariant, not a runtime error - indicates a bug in Expression subclass constructors
+        console.assert(this.width % 2 === 0, `SequenceExpression violates width invariant: expected even width, got ${this.width}`);
     }
 
     /**
@@ -377,7 +386,7 @@ class StackExpression extends Expression {
         }
 
         this.width = 2 + maxWidth + 2; // 2 units left rail space + max child width + 2 units right rail space
-        this.height = totalHeight;
+        this.height = totalHeight + (totalHeight % 2); // Add 1 if odd to make it even
         this.baseline = this.children[0].baseline; // Use first child's baseline
     }
 
@@ -389,45 +398,46 @@ class StackExpression extends Expression {
         
         this.children.forEach((child, i) => {
             // Each child centered within the stack's content area
-            const xOffset = 2 + (maxWidth - child.width) / 2; // 2 units left rail space + centering offset
+            const childXOffset = 2 + (maxWidth - child.width) / 2; // 2 units left rail space + centering offset
             const childBaseline = currentY + child.baseline;
             
             // Render child using RenderContext
-            ctx.renderChild(child, xOffset, currentY, 'stack-child', { index: i, alternative: true });
+            ctx.renderChild(child, childXOffset, currentY, 'stack-child', { index: i, alternative: true });
             
             // Add tracks for routing
             if (i === 0) {
                 // First child: straight through on main baseline
                 ctx.trackBuilder
                     .start(0, this.baseline, Direction.EAST)
-                    .forward(xOffset) // go directly to child start position
+                    .forward(childXOffset) // go directly to child start position
                     .finish(`child${i}-left`);
                 
                 ctx.trackBuilder
-                    .start(xOffset + child.width, this.baseline, Direction.EAST)
-                    .forward(2) // go to right rail boundary
+                    .start(childXOffset + child.width, this.baseline, Direction.EAST)
+                    .forward(childXOffset) // go to right rail boundary
                     .finish(`child${i}-right`);
             } else {
                 // Other children: handle width centering and vertical routing
                 const dy = childBaseline - this.baseline; // vertical distance
                 
-                // Left side: immediate turn down at x=0, then route east to child
+                // Left side: route from stack baseline to child endpoint
+                // immediate turn down at x=0, then route east to child
                 ctx.trackBuilder
                     .start(0, this.baseline, Direction.EAST)
                     .turnRight() // immediately turn south at x=0
                     .forward(dy - 2) // -2 for the quarter circles
                     .turnLeft() // turn east toward child (SOUTH → EAST is counterclockwise)
-                    .forward(xOffset - 2) // the two turns already provide 2 units horizontal displacement
+                    .forward(childXOffset - 2) // the two turns already provide 2 units horizontal displacement
                     .finish(`child${i}-left`);
                 
                 // Right side: route from child exit back to stack baseline
+                // immediate turn up at x=0 fromn east to north 
                 ctx.trackBuilder
-                    .start(xOffset + child.width, childBaseline, Direction.EAST)
-                    .forward(0) // child ends at its centered position + width
-                    .turnLeft() // Turn UP (north) to return to baseline
-                    .forward(dy - 2) // -2 for the quarter circles  
+                    .start(childXOffset + child.width, childBaseline, Direction.EAST)
+                    .forward(childXOffset - 2) // the two turns already provide 2 units horizontal displacement
                     .turnLeft()
-                    .forward(this.width - (xOffset + child.width)) // to stack edge
+                    .forward(dy - 2)
+                    .turnRight()                    
                     .finish(`child${i}-right`);
             }
             

@@ -198,8 +198,199 @@ program
         }
     });
 
+program
+    .command('watch')
+    .argument('<input>', 'ABNF input file or glob pattern to watch')
+    .argument('[output]', 'HTML output file or directory (default: same location as input with .html extension)')
+    .option('-t, --title <title>', 'Document title (for single file) or title template')
+    .option('-o, --output-dir <dir>', 'Output directory for multiple files')
+    .option('-i, --index', 'Generate an index.html file listing all converted files')
+    .description('Watch ABNF files and source code for changes, regenerate on change')
+    .action(async (input, output, options) => {
+        console.log('🚀 Starting watch mode...');
+        console.log(`📁 Watching pattern: ${input}`);
+        console.log(`📂 Watching source: src/**/*.js`);
+        console.log('📝 Press Ctrl+C to stop\n');
+        
+        const converter = new ABNFToRailroad();
+        
+        // Function to clear module cache for source files
+        const clearModuleCache = () => {
+            const srcPath = path.join(__dirname, '..', 'src');
+            Object.keys(require.cache).forEach(key => {
+                if (key.startsWith(srcPath)) {
+                    delete require.cache[key];
+                }
+            });
+        };
+        
+        // Function to run generation
+        const runGeneration = async (changeFile) => {
+            console.log(`🔄 Change detected: ${changeFile || 'unknown'}`);
+            
+            // Clear module cache if source file changed
+            if (changeFile && changeFile !== 'initial' && changeFile.includes('src')) {
+                console.log(`🔥 Clearing module cache...`);
+                clearModuleCache();
+            }
+            
+            console.log(`⚡ Regenerating...`);
+            
+            try {
+                // Reload converter if cache was cleared
+                let currentConverter = converter;
+                if (changeFile && changeFile !== 'initial' && changeFile.includes('src')) {
+                    console.log(`🔄 Reloading converter...`);
+                    delete require.cache[require.resolve('../src/index')];
+                    const ABNFToRailroadReloaded = require('../src/index');
+                    currentConverter = new ABNFToRailroadReloaded();
+                }
+                
+                // Find matching files using glob pattern
+                const inputFiles = await glob(input, { 
+                    ignore: ['node_modules/**', '**/node_modules/**'],
+                    absolute: true 
+                });
+                
+                if (inputFiles.length === 0) {
+                    console.log(`⚠️  No files found matching pattern: ${input}`);
+                    return;
+                }
+                
+                let successCount = 0;
+                let errorCount = 0;
+                const processedFiles = [];
+                
+                for (const inputFile of inputFiles) {
+                    try {
+                        // Determine output filename
+                        let outputFile;
+                        if (inputFiles.length === 1 && output && !options.outputDir) {
+                            // Single file with explicit output
+                            outputFile = path.resolve(output);
+                        } else {
+                            // Multiple files or output directory specified
+                            const inputDir = options.outputDir ? path.resolve(options.outputDir) : path.dirname(inputFile);
+                            const inputName = path.basename(inputFile, path.extname(inputFile));
+                            outputFile = path.join(inputDir, inputName + '.html');
+                            
+                            // Ensure output directory exists
+                            await fs.ensureDir(path.dirname(outputFile));
+                        }
+                        
+                        // Generate title from filename if not specified
+                        const title = options.title || `${path.basename(inputFile, path.extname(inputFile))} Grammar`;
+                        
+                        const conversionOptions = { title };
+                        const result = await currentConverter.convert(inputFile, outputFile, conversionOptions);
+                        
+                        if (result.success) {
+                            successCount++;
+                            
+                            // Track successful conversions for index generation
+                            processedFiles.push({
+                                inputFile,
+                                outputFile,
+                                rulesCount: result.rulesCount,
+                                title
+                            });
+                        } else {
+                            console.error(`✗ Error: ${result.error}`);
+                            errorCount++;
+                        }
+                    } catch (fileError) {
+                        console.error(`✗ Error processing ${inputFile}: ${fileError.message}`);
+                        errorCount++;
+                    }
+                }
+                
+                // Generate index if requested and there are successful conversions
+                if (options.index && processedFiles.length > 0) {
+                    await generateIndexPage(processedFiles, options.outputDir);
+                }
+                
+                // Summary
+                const timestamp = new Date().toLocaleTimeString();
+                if (errorCount === 0) {
+                    console.log(`✅ [${timestamp}] Regenerated ${successCount} file(s) successfully`);
+                } else {
+                    console.log(`⚠️  [${timestamp}] Success: ${successCount}, Errors: ${errorCount}`);
+                }
+                console.log('👀 Watching for changes...\n');
+                
+            } catch (error) {
+                console.error(`❌ Error: ${error.message}`);
+            }
+        };
+        
+        // Initial generation
+        await runGeneration('initial');
+        
+        // Set up file watchers
+        const watchedPaths = new Set();
+        const watchers = [];
+        
+        try {
+            // Watch ABNF files
+            const abnfFiles = await glob(input, { 
+                ignore: ['node_modules/**', '**/node_modules/**'],
+                absolute: true 
+            });
+            
+            for (const file of abnfFiles) {
+                if (!watchedPaths.has(file)) {
+                    watchedPaths.add(file);
+                    const watcher = fs.watch(file, { encoding: 'utf8' }, (eventType, filename) => {
+                        if (eventType === 'change') {
+                            runGeneration(path.relative(process.cwd(), file));
+                        }
+                    });
+                    watchers.push(watcher);
+                }
+            }
+            
+            // Watch source code directory
+            const srcDir = path.join(__dirname, '..', 'src');
+            if (fs.existsSync(srcDir)) {
+                const watchSrcRecursive = (dir) => {
+                    const watcher = fs.watch(dir, { encoding: 'utf8' }, (eventType, filename) => {
+                        if (eventType === 'change' && filename && filename.endsWith('.js')) {
+                            const fullPath = path.join(dir, filename);
+                            runGeneration(path.relative(process.cwd(), fullPath));
+                        }
+                    });
+                    watchers.push(watcher);
+                    
+                    // Watch subdirectories
+                    const items = fs.readdirSync(dir, { withFileTypes: true });
+                    for (const item of items) {
+                        if (item.isDirectory()) {
+                            watchSrcRecursive(path.join(dir, item.name));
+                        }
+                    }
+                };
+                
+                watchSrcRecursive(srcDir);
+            }
+            
+            // Handle graceful shutdown
+            process.on('SIGINT', () => {
+                console.log('\n🛑 Stopping watch mode...');
+                watchers.forEach(watcher => watcher.close());
+                process.exit(0);
+            });
+            
+            // Keep the process alive
+            process.stdin.resume();
+            
+        } catch (error) {
+            console.error(`❌ Error setting up watchers: ${error.message}`);
+            process.exit(1);
+        }
+    });
+
 // Handle the npm script case: npm run generate <file>
-if (process.argv.length >= 3 && process.argv[2] !== 'generate' && process.argv[2] !== 'list') {
+if (process.argv.length >= 3 && process.argv[2] !== 'generate' && process.argv[2] !== 'list' && process.argv[2] !== 'watch') {
     // If called as: node bin/cli.js file.abnf
     // Transform it to: node bin/cli.js generate file.abnf
     const args = process.argv.slice(2);

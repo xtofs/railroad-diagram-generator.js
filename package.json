@@ -10,7 +10,10 @@
   "scripts": {
     "generate": "node bin/cli.js generate",
     "dev": "node bin/cli.js generate",
-    "examples": "node bin/cli.js generate \"examples/*.abnf\" --index"
+    "examples": "node bin/cli.js generate \"examples/*.abnf\" --index",
+    "watch": "node bin/cli.js watch",
+    "watch:examples": "node bin/cli.js watch \"examples/*.abnf\" --index",
+    "watch:calculator": "node bin/cli.js watch \"examples/calculator.abnf\""
   },
   "keywords": [
     "abnf",
