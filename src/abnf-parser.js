@@ -11,6 +11,7 @@
  * @typedef {Object} ASTNode
  * @property {string} type - Node type ('terminal', 'nonterminal', 'sequence', 'stack', 'bypass', 'loop')
  * @property {string} [text] - Text content (for terminal/nonterminal nodes)
+ * @property {boolean} [quoted] - Whether terminal was originally quoted in ABNF (for terminals only)
  * @property {ASTNode[]} [elements] - Child nodes (for container nodes)
  * @property {ASTNode} [element] - Single child node (for wrapper nodes)
  */
@@ -382,7 +383,7 @@ class ABNFParser {
                 text = text.slice(1, -1);
                 
                 return {
-                    element: { type: 'terminal', text: text },
+                    element: { type: 'terminal', text: text, quoted: true },
                     nextIndex: index + 1
                 };
 
@@ -397,7 +398,7 @@ class ABNFParser {
             case 'decval':
                 // Hex or decimal values - treat as terminals
                 return {
-                    element: { type: 'terminal', text: token.value },
+                    element: { type: 'terminal', text: token.value, quoted: false },
                     nextIndex: index + 1
                 };
 

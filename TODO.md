@@ -3,7 +3,7 @@
 
 - [x] can we add 1 pixel to the svg height and width to see the small lines of the pattern at the bottom and right?
 
-- [ ] to distinguish terminals from non-terminals even better it would be good we add double quotes around terminals that originally where written as double quoted string. For example add it to `0` since it appears as `"0"` in ABNF whereas `%x31-39` is a terminal that didn't have double quotes
+- [x] to distinguish terminals from non-terminals even better it would be good we add double quotes around terminals that originally where written as double quoted string. For example add it to `0` since it appears as `"0"` in ABNF whereas `%x31-39` is a terminal that didn't have double quotes
 Yet I am not sure where this decision should be made. It is probably the parsers responsibility and it coudl just pass the escaped double quotes along.
 
 - [ ] the stack layout gets the merging rails on the right wrong. they are starting too far on the right and have turn south instead of back up (north). a good example is the WS rule in json.abnf .

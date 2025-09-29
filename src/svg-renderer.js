@@ -223,16 +223,23 @@ class TextBoxExpression extends Expression {
      * @param {number} [fontSize=14] - Font size in pixels
      * @param {string} [fontFamily='monospace'] - Font family
      * @param {number} [gridSize=16] - Grid size in pixels
+     * @param {boolean} [quoted=false] - Whether terminal was originally quoted (terminals only)
      */
-    constructor(text, boxType, fontSize = 14, fontFamily = 'monospace', gridSize = 16) {
+    constructor(text, boxType, fontSize = 14, fontFamily = 'monospace', gridSize = 16, quoted = false) {
         super();
         /** @type {string} */
         this.text = text;
         /** @type {'terminal'|'nonterminal'} */
         this.boxType = boxType;
+        /** @type {boolean} */
+        this.quoted = quoted;
+        
+        // For display: add quotes around quoted terminals
+        /** @type {string} */
+        this.displayText = (boxType === 'terminal' && quoted) ? `"${text}"` : text;
 
-        // Measure actual text dimensions using canvas
-        const textMetrics = measureText(this.text, fontSize, fontFamily);
+        // Measure actual text dimensions using canvas (use display text for proper sizing)
+        const textMetrics = measureText(this.displayText, fontSize, fontFamily);
         
         // Convert text width to grid units with padding
         const textWidthInGrids = Math.ceil(textMetrics.width / gridSize);
@@ -250,7 +257,7 @@ class TextBoxExpression extends Expression {
      */
     render(ctx) {
         // Use RenderContext to add text box at (0,0) in grid coordinates
-        ctx.addTextBox(0, 0, this.width, this.height, this.text, this.boxType, this.baseline);
+        ctx.addTextBox(0, 0, this.width, this.height, this.displayText, this.boxType, this.baseline);
     }
 }
 
@@ -265,9 +272,10 @@ class TerminalExpression extends TextBoxExpression {
      * @param {number} [fontSize=14] - Font size in pixels
      * @param {string} [fontFamily='monospace'] - Font family
      * @param {number} [gridSize=16] - Grid size in pixels
+     * @param {boolean} [quoted=false] - Whether terminal was originally quoted
      */
-    constructor(text, fontSize = 14, fontFamily = 'monospace', gridSize = 16) {
-        super(text, 'terminal', fontSize, fontFamily, gridSize);
+    constructor(text, fontSize = 14, fontFamily = 'monospace', gridSize = 16, quoted = false) {
+        super(text, 'terminal', fontSize, fontFamily, gridSize, quoted);
     }
 }
 
@@ -591,7 +599,7 @@ class SVGRenderer {
         
         switch (element.type) {
             case 'terminal':
-                return new TerminalExpression(element.text, this.fontSize, this.fontFamily, this.gridSize);
+                return new TerminalExpression(element.text, this.fontSize, this.fontFamily, this.gridSize, element.quoted);
             case 'nonterminal':
                 return new NonterminalExpression(element.text, this.fontSize, this.fontFamily, this.gridSize);
             case 'sequence':

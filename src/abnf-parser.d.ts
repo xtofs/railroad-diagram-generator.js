@@ -9,6 +9,8 @@ export interface ASTNode {
   text?: string;
   /** Box type (for textBox nodes) */
   boxType?: 'terminal' | 'nonterminal';
+  /** Whether terminal was originally quoted in ABNF (for textBox terminals only) */
+  quoted?: boolean;
   /** Child nodes (for container nodes) */
   elements?: ASTNode[];
   /** Single child node (for wrapper nodes) */
