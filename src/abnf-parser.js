@@ -9,9 +9,8 @@
 
 /**
  * @typedef {Object} ASTNode
- * @property {string} type - Node type ('textBox', 'sequence', 'stack', 'bypass', 'loop')
- * @property {string} [text] - Text content (for textBox nodes)
- * @property {string} [boxType] - Box type ('terminal' or 'nonterminal')
+ * @property {string} type - Node type ('terminal', 'nonterminal', 'sequence', 'stack', 'bypass', 'loop')
+ * @property {string} [text] - Text content (for terminal/nonterminal nodes)
  * @property {ASTNode[]} [elements] - Child nodes (for container nodes)
  * @property {ASTNode} [element] - Single child node (for wrapper nodes)
  */
@@ -183,10 +182,14 @@ class ABNFParser {
      * @private
      */
     _parseDefinition(name, definition) {
+        const expression = this._parseTokenizedDefinition(definition);
+        // Add debug string functionality to the parsed expression
+        addDebugStringToElement(expression);
+        
         const result = {
             name: name,
             original: definition,
-            expression: this._parseTokenizedDefinition(definition)
+            expression: expression
         };
         return result;
     }
@@ -364,14 +367,14 @@ class ABNFParser {
                 text = text.slice(1, -1);
                 
                 return {
-                    element: { type: 'textBox', text: text, boxType: 'terminal' },
+                    element: { type: 'terminal', text: text },
                     nextIndex: index + 1
                 };
 
             case 'identifier':
                 // Non-terminal rule reference
                 return {
-                    element: { type: 'textBox', text: token.value, boxType: 'nonterminal' },
+                    element: { type: 'nonterminal', text: token.value },
                     nextIndex: index + 1
                 };
 
@@ -379,7 +382,7 @@ class ABNFParser {
             case 'decval':
                 // Hex or decimal values - treat as terminals
                 return {
-                    element: { type: 'textBox', text: token.value, boxType: 'terminal' },
+                    element: { type: 'terminal', text: token.value },
                     nextIndex: index + 1
                 };
 
@@ -412,6 +415,56 @@ class ABNFParser {
         }
     }
 
+}
+
+/**
+ * Add debug string functionality to DiagramElement objects
+ * @param {ASTNode} element - The DiagramElement to enhance
+ * @returns {ASTNode} The same element with added toDebugString method
+ */
+function addDebugStringToElement(element) {
+    if (!element || typeof element !== 'object') {
+        return element;
+    }
+
+    // Add toDebugString method if it doesn't exist
+    if (!element.toDebugString) {
+        element.toDebugString = function() {
+            switch (this.type) {
+                case 'terminal':
+                    return `terminal("${this.text}")`;
+                    
+                case 'nonterminal':
+                    return `nonterminal("${this.text}")`;
+                    
+                case 'sequence':
+                    const seqElements = this.elements.map(el => el.toDebugString()).join(', ');
+                    return `sequence(${seqElements})`;
+                    
+                case 'stack':
+                    const stackElements = this.elements.map(el => el.toDebugString()).join(', ');
+                    return `stack(${stackElements})`;
+                    
+                case 'bypass':
+                    return `bypass(${this.element.toDebugString()})`;
+                    
+                case 'loop':
+                    return `loop(${this.element.toDebugString()})`;
+                    
+                default:
+                    return `unknown(${this.type})`;
+            }
+        };
+    }
+
+    // Recursively add to child elements
+    if (element.elements && Array.isArray(element.elements)) {
+        element.elements.forEach(child => addDebugStringToElement(child));
+    } else if (element.element) {
+        addDebugStringToElement(element.element);
+    }
+
+    return element;
 }
 
 module.exports = ABNFParser;

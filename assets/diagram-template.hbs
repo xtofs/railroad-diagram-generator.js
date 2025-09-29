@@ -15,7 +15,7 @@
     <div class="syntax-rule" id="syntax-rule-{{sanitizeId name}}">
         <h2>{{name}}</h2>
         <p><code>{{name}} := {{original}}</code></p>
-        <div class="diagram-container">
+        <div class="diagram-container" data-debug-ast="{{debugString}}">
             {{{svg}}}
         </div>
     </div>
@@ -30,9 +30,10 @@
         function addGridToSVGs() {
             const svgs = document.querySelectorAll('svg');
             const gridSize = 16; // Match the grid size from the renderer
-            const patternId = 'grid-pattern'; // Same ID in each SVG
             
-            svgs.forEach((svg) => {
+            svgs.forEach((svg, svgIndex) => {
+                const patternId = `grid-pattern-${svgIndex}`; // Unique ID per SVG
+                
                 // Create defs element if it doesn't exist, append at end
                 let defs = svg.querySelector('defs');
                 if (!defs) {
@@ -47,7 +48,14 @@
                 pattern.setAttribute('width', gridSize);
                 pattern.setAttribute('height', gridSize);
                 
-                // Create thin grid lines
+                // Add a light background to the pattern to make it more visible
+                const patternBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                patternBg.setAttribute('width', gridSize);
+                patternBg.setAttribute('height', gridSize);
+                patternBg.setAttribute('fill', 'rgba(255, 182, 193, 0.05)'); // Very subtle pink background
+                pattern.appendChild(patternBg);
+                
+                // Create subtle grid pattern with short lines at intersections
                 function createGridLine(x1, y1, x2, y2) {
                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                     line.setAttribute('x1', x1);
@@ -55,33 +63,42 @@
                     line.setAttribute('x2', x2);
                     line.setAttribute('y2', y2);
                     line.setAttribute('stroke', 'hotpink');
-                    line.setAttribute('stroke-width', '0.5');
-                    line.setAttribute('opacity', '0.3');
+                    line.setAttribute('stroke-width', '1');
+                    line.setAttribute('opacity', '0.6');
                     pattern.appendChild(line);
                 }
 
-                // Create horizontal lines
-                createGridLine(0, 0, 5, 0);
-                createGridLine(gridSize-5, 0, gridSize, 0);
+                // Create short horizontal lines (left and right edges)
+                createGridLine(0, 0, 4, 0);
+                createGridLine(gridSize-4, 0, gridSize, 0);
                 
-                // Create vertical line
-                createGridLine(0, 0, 0, 5);
-                createGridLine(0, gridSize-5, 0, gridSize);
-                
+                // Create short vertical lines (top and bottom edges)
+                createGridLine(0, 0, 0, 4);
+                createGridLine(0, gridSize-4, 0, gridSize);
              
                 defs.appendChild(pattern);
                 
-                // Create background rectangle and append at end
+                // Get SVG dimensions
+                const svgRect = svg.getBoundingClientRect();
+                const svgWidth = svg.getAttribute('width') || svgRect.width;
+                const svgHeight = svg.getAttribute('height') || svgRect.height;
+                
+                // Create background rectangle that covers the entire SVG
                 const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 background.setAttribute('x', '0');
                 background.setAttribute('y', '0');
-                background.setAttribute('width', '100%');
-                background.setAttribute('height', '100%');
+                background.setAttribute('width', svgWidth);
+                background.setAttribute('height', svgHeight);
                 background.setAttribute('fill', `url(#${patternId})`);
                 background.setAttribute('class', 'grid-background');
                 
-                // Append background at the end of the SVG
-                svg.appendChild(background);
+                // Insert background right after defs but before any other content
+                const firstChild = svg.children[0];
+                if (firstChild && firstChild !== defs) {
+                    svg.insertBefore(background, firstChild);
+                } else {
+                    svg.appendChild(background);
+                }
             });
         }
         
@@ -92,13 +109,71 @@
             addGridToSVGs();
         }
         
+        // Add bounding boxes to all group elements
+        function addBoundingBoxes() {
+            const svgs = document.querySelectorAll('svg');
+            
+            svgs.forEach((svg) => {
+                const groups = svg.querySelectorAll('g[transform]');
+                
+                groups.forEach((group) => {
+                    // Get the bounding box of the group's content
+                    const bbox = group.getBBox();
+                    
+                    // Create a bounding box rectangle aligned with grid
+                    const boundingBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    boundingBox.setAttribute('x', bbox.x);
+                    boundingBox.setAttribute('y', bbox.y);
+                    boundingBox.setAttribute('width', bbox.width);
+                    boundingBox.setAttribute('height', bbox.height);
+                    boundingBox.setAttribute('fill', 'none');
+                    boundingBox.setAttribute('stroke', 'hotpink');
+                    boundingBox.setAttribute('stroke-width', '0.5');
+                    boundingBox.setAttribute('opacity', '0.9');
+                    boundingBox.setAttribute('class', 'bounding-box');
+                    
+                    // Insert at the beginning of the group so it's behind content
+                    group.insertBefore(boundingBox, group.firstChild);
+                });
+            });
+        }
+        
+        // Add bounding boxes when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', addBoundingBoxes);
+        } else {
+            addBoundingBoxes();
+        }
+        
         // Optional: Add toggle functionality
         document.addEventListener('keydown', function(e) {
             if (e.key === 'g' && e.ctrlKey) {
                 e.preventDefault();
+                console.log('Ctrl+G pressed - toggling debug view');
+                
                 const gridElements = document.querySelectorAll('.grid-background');
-                gridElements.forEach(grid => {
-                    grid.style.display = grid.style.display === 'none' ? '' : 'none';
+                const boundingBoxElements = document.querySelectorAll('.bounding-box');
+                
+                console.log(`Found ${gridElements.length} grid elements and ${boundingBoxElements.length} bounding boxes`);
+                
+                gridElements.forEach((grid, index) => {
+                    const wasVisible = grid.classList.contains('visible');
+                    if (wasVisible) {
+                        grid.classList.remove('visible');
+                    } else {
+                        grid.classList.add('visible');
+                    }
+                    console.log(`Grid ${index}: ${wasVisible ? 'visible' : 'hidden'} -> ${!wasVisible ? 'visible' : 'hidden'}`);
+                });
+                
+                boundingBoxElements.forEach((bbox, index) => {
+                    const wasVisible = bbox.classList.contains('visible');
+                    if (wasVisible) {
+                        bbox.classList.remove('visible');
+                    } else {
+                        bbox.classList.add('visible');
+                    }
+                    console.log(`BBox ${index}: ${wasVisible ? 'visible' : 'hidden'} -> ${!wasVisible ? 'visible' : 'hidden'}`);
                 });
             }
         });

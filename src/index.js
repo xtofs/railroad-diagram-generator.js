@@ -83,7 +83,8 @@ class ABNFToRailroad {
                     name: rule.name,
                     original: rule.original,
                     expression: rule.expression,
-                    svg: svg
+                    svg: svg,
+                    debugString: rule.expression.toDebugString ? rule.expression.toDebugString() : 'no-debug'
                 });
             } catch (error) {
                 console.error(`Error rendering SVG for rule ${name}:`, error);
@@ -91,7 +92,8 @@ class ABNFToRailroad {
                     name: rule.name,
                     original: rule.original,
                     expression: rule.expression,
-                    svg: `<p>Error rendering diagram for rule: ${name}</p>`
+                    svg: `<p>Error rendering diagram for rule: ${name}</p>`,
+                    debugString: rule.expression.toDebugString ? rule.expression.toDebugString() : 'error'
                 });
             }
         }

@@ -95,7 +95,8 @@ class HTMLGenerator {
         const rulesArray = Array.from(enrichedRules.values()).map(rule => ({
             name: rule.name,
             original: rule.original,
-            svg: rule.svg
+            svg: rule.svg,
+            debugString: rule.debugString
         }));
 
         return this.template({

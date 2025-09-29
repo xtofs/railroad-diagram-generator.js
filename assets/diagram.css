@@ -133,3 +133,28 @@
     border: 1px solid red;
     border-radius: 4px;
 }
+
+/* Grid and bounding box styles - initially hidden */
+.grid-background,
+.bounding-box {
+    display: none;
+}
+
+/* Visible state for grid and bounding boxes */
+.grid-background.visible,
+.bounding-box.visible {
+    display: block !important;
+}
+
+/* Make grid transparent to mouse clicks so elements underneath can be clicked */
+.grid-background {
+    pointer-events: none;
+}
+
+/* Ensure bounding boxes are visible when shown */
+.bounding-box {
+    stroke: limegreen !important;
+    stroke-width: 0.5 !important;
+    fill: none !important;
+    opacity: 0.9 !important;
+}

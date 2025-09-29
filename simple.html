@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Grammar</title>
+    <title>Grammar Syntax Diagrams</title>
     <style>
 
 /* Rail track styling for connections */
@@ -141,44 +141,69 @@
     border-radius: 4px;
 }
 
+/* Grid and bounding box styles - initially hidden */
+.grid-background,
+.bounding-box {
+    display: none;
+}
+
+/* Visible state for grid and bounding boxes */
+.grid-background.visible,
+.bounding-box.visible {
+    display: block !important;
+}
+
+/* Make grid transparent to mouse clicks so elements underneath can be clicked */
+.grid-background {
+    pointer-events: none;
+}
+
+/* Ensure bounding boxes are visible when shown */
+.bounding-box {
+    stroke: limegreen !important;
+    stroke-width: 0.5 !important;
+    fill: none !important;
+    opacity: 0.9 !important;
+}
+
     </style>
 </head>
 <body>
-    <h1>Test Grammar</h1>
+    <h1>Grammar Syntax Diagrams</h1>
     
     <div class="syntax-rule" id="syntax-rule-expression">
         <h2>expression</h2>
         <p><code>expression := term [&quot;+&quot; expression]</code></p>
-        <div class="diagram-container">
-            <svg width="448" height="64" viewBox="0 0 448 64"><circle cx="16" cy="32" r="14.4" class="start-endpoint"/><g transform="translate(32, 16)" class="main-expression" data-rule="expression"><g transform="translate(0, 0)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="nonterminal" data-text="term"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">term</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g><path d="M 96 16 L 128 16" class="rail-track" data-id="seq-0" data-seq="start(6, 1, east) forward(2)"/><g transform="translate(128, 0)" class="sequence-child" data-index="1"><g class="textbox-expression" data-type="nonterminal" data-text="[&quot;+&quot;"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">[&quot;+&quot;</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g><path d="M 224 16 L 256 16" class="rail-track" data-id="seq-1" data-seq="start(14, 1, east) forward(2)"/><g transform="translate(256, 0)" class="sequence-child" data-index="2"><g class="textbox-expression" data-type="nonterminal" data-text="expression]"><rect x="0" y="0" width="128" height="32" rx="9.6" class="textbox nonterminal"/><text x="64" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">expression]</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 128 16 L 144 16" class="rail-track" data-id="textbox-right" data-seq="start(8, 1, east) forward(1)"/><path d="M 128 16 L 144 16" class="rail-track" data-id="textbox-right" data-seq="start(8, 1, east) forward(1)"/></g></g></g><circle cx="432" cy="32" r="14.4" class="end-endpoint"/><path d="M 20 32 L 32 32" class="rail-track" data-id="start-connection" data-seq="start(1.25, 2, east) forward(0.75)"/><path d="M 416 32 L 428 32" class="rail-track" data-id="end-connection" data-seq="start(26, 2, east) forward(0.75)"/></svg>
+        <div class="diagram-container" data-debug-ast="sequence(nonterminal(&quot;term&quot;), bypass(sequence(terminal(&quot;+&quot;), nonterminal(&quot;expression&quot;))))">
+            <svg width="512" height="80" viewBox="0 0 512 80"><circle cx="16" cy="48" r="14.4" class="start-endpoint"/><g transform="translate(48, 16)" class="main-expression" data-rule="expression"><g transform="translate(0, 16)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="nonterminal" data-text="term"><rect x="16" y="0" width="64" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">term</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 96 32 L 128 32" class="rail-track" data-id="seq-0" data-seq="start(6, 2, east) forward(2)"/><g transform="translate(128, 0)" class="sequence-child" data-index="1"><g transform="translate(32, 16)" class="bypass-child"><g transform="translate(0, 0)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="terminal" data-text="+"><rect x="16" y="0" width="32" height="32" rx="9.6" class="textbox terminal"/><text x="32" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">+</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 48 16 L 64 16" class="rail-track" data-id="textbox-right" data-seq="start(3, 1, east) forward(1)"/><path d="M 48 16 L 64 16" class="rail-track" data-id="textbox-right" data-seq="start(3, 1, east) forward(1)"/></g></g><path d="M 64 16 L 96 16" class="rail-track" data-id="seq-0" data-seq="start(4, 1, east) forward(2)"/><g transform="translate(96, 0)" class="sequence-child" data-index="1"><g class="textbox-expression" data-type="nonterminal" data-text="expression"><rect x="16" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="64" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">expression</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 112 16 L 128 16" class="rail-track" data-id="textbox-right" data-seq="start(7, 1, east) forward(1)"/><path d="M 112 16 L 128 16" class="rail-track" data-id="textbox-right" data-seq="start(7, 1, east) forward(1)"/></g></g></g><path d="M 0 32 A 16 16 0 0 0 16 16 L 16 16 A 16 16 0 0 1 32 0 L 256 0 A 16 16 0 0 1 272 16 L 272 16 A 16 16 0 0 0 288 32" class="rail-track" data-id="bypass-path" data-seq="start(0, 2, east) turnLeft() forward(0) turnRight() forward(14) turnRight() forward(0) turnLeft()"/><path d="M 0 32 L 32 32" class="rail-track" data-id="through-left" data-seq="start(0, 2, east) forward(2)"/><path d="M 256 32 L 288 32" class="rail-track" data-id="through-right" data-seq="start(16, 2, east) forward(2)"/></g></g><circle cx="496" cy="48" r="14.4" class="end-endpoint"/><path d="M 16 48 L 48 48" class="rail-track" data-id="start-connection" data-seq="start(1, 3, east) forward(2)"/><path d="M 496 48 L 464 48" class="rail-track" data-id="end-connection" data-seq="start(31, 3, west) forward(2)"/></svg>
         </div>
     </div>
     <div class="syntax-rule" id="syntax-rule-term">
         <h2>term</h2>
         <p><code>term := factor [&quot;*&quot; term]</code></p>
-        <div class="diagram-container">
-            <svg width="416" height="64" viewBox="0 0 416 64"><circle cx="16" cy="32" r="14.4" class="start-endpoint"/><g transform="translate(32, 16)" class="main-expression" data-rule="term"><g transform="translate(0, 0)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="nonterminal" data-text="factor"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">factor</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g><path d="M 96 16 L 128 16" class="rail-track" data-id="seq-0" data-seq="start(6, 1, east) forward(2)"/><g transform="translate(128, 0)" class="sequence-child" data-index="1"><g class="textbox-expression" data-type="nonterminal" data-text="[&quot;*&quot;"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">[&quot;*&quot;</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g><path d="M 224 16 L 256 16" class="rail-track" data-id="seq-1" data-seq="start(14, 1, east) forward(2)"/><g transform="translate(256, 0)" class="sequence-child" data-index="2"><g class="textbox-expression" data-type="nonterminal" data-text="term]"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">term]</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g></g><circle cx="400" cy="32" r="14.4" class="end-endpoint"/><path d="M 20 32 L 32 32" class="rail-track" data-id="start-connection" data-seq="start(1.25, 2, east) forward(0.75)"/><path d="M 384 32 L 396 32" class="rail-track" data-id="end-connection" data-seq="start(24, 2, east) forward(0.75)"/></svg>
+        <div class="diagram-container" data-debug-ast="sequence(nonterminal(&quot;factor&quot;), bypass(sequence(terminal(&quot;*&quot;), nonterminal(&quot;term&quot;))))">
+            <svg width="480" height="80" viewBox="0 0 480 80"><circle cx="16" cy="48" r="14.4" class="start-endpoint"/><g transform="translate(48, 16)" class="main-expression" data-rule="term"><g transform="translate(0, 16)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="nonterminal" data-text="factor"><rect x="16" y="0" width="64" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">factor</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 96 32 L 128 32" class="rail-track" data-id="seq-0" data-seq="start(6, 2, east) forward(2)"/><g transform="translate(128, 0)" class="sequence-child" data-index="1"><g transform="translate(32, 16)" class="bypass-child"><g transform="translate(0, 0)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="terminal" data-text="*"><rect x="16" y="0" width="32" height="32" rx="9.6" class="textbox terminal"/><text x="32" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">*</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 48 16 L 64 16" class="rail-track" data-id="textbox-right" data-seq="start(3, 1, east) forward(1)"/><path d="M 48 16 L 64 16" class="rail-track" data-id="textbox-right" data-seq="start(3, 1, east) forward(1)"/></g></g><path d="M 64 16 L 96 16" class="rail-track" data-id="seq-0" data-seq="start(4, 1, east) forward(2)"/><g transform="translate(96, 0)" class="sequence-child" data-index="1"><g class="textbox-expression" data-type="nonterminal" data-text="term"><rect x="16" y="0" width="64" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">term</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g></g><path d="M 0 32 A 16 16 0 0 0 16 16 L 16 16 A 16 16 0 0 1 32 0 L 224 0 A 16 16 0 0 1 240 16 L 240 16 A 16 16 0 0 0 256 32" class="rail-track" data-id="bypass-path" data-seq="start(0, 2, east) turnLeft() forward(0) turnRight() forward(12) turnRight() forward(0) turnLeft()"/><path d="M 0 32 L 32 32" class="rail-track" data-id="through-left" data-seq="start(0, 2, east) forward(2)"/><path d="M 224 32 L 256 32" class="rail-track" data-id="through-right" data-seq="start(14, 2, east) forward(2)"/></g></g><circle cx="464" cy="48" r="14.4" class="end-endpoint"/><path d="M 16 48 L 48 48" class="rail-track" data-id="start-connection" data-seq="start(1, 3, east) forward(2)"/><path d="M 464 48 L 432 48" class="rail-track" data-id="end-connection" data-seq="start(29, 3, west) forward(2)"/></svg>
         </div>
     </div>
     <div class="syntax-rule" id="syntax-rule-factor">
         <h2>factor</h2>
         <p><code>factor := number / &quot;(&quot; expression &quot;)&quot;</code></p>
-        <div class="diagram-container">
-            <svg width="448" height="176" viewBox="0 0 448 176"><circle cx="16" cy="80" r="14.4" class="start-endpoint"/><g transform="translate(32, 16)" class="main-expression" data-rule="factor"><g transform="translate(144, 32)" class="stack-child" data-index="0" data-alternative="true"><g class="textbox-expression" data-type="nonterminal" data-text="number"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">number</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g><path d="M 0 64 L 144 64" class="rail-track" data-id="child0-left" data-seq="start(0, 4, east) forward(9)"/><path d="M 240 48 L 384 48" class="rail-track" data-id="child0-right" data-seq="start(15, 3, east) forward(9)"/><g transform="translate(32, 80)" class="stack-child" data-index="1" data-alternative="true"><g transform="translate(0, 0)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="terminal" data-text="("><rect x="0" y="0" width="64" height="32" rx="9.6" class="textbox terminal"/><text x="32" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">(</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 64 16 L 80 16" class="rail-track" data-id="textbox-right" data-seq="start(4, 1, east) forward(1)"/><path d="M 64 16 L 80 16" class="rail-track" data-id="textbox-right" data-seq="start(4, 1, east) forward(1)"/></g></g><path d="M 64 16 L 96 16" class="rail-track" data-id="seq-0" data-seq="start(4, 1, east) forward(2)"/><g transform="translate(96, 0)" class="sequence-child" data-index="1"><g class="textbox-expression" data-type="nonterminal" data-text="expression"><rect x="0" y="0" width="128" height="32" rx="9.6" class="textbox nonterminal"/><text x="64" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">expression</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 128 16 L 144 16" class="rail-track" data-id="textbox-right" data-seq="start(8, 1, east) forward(1)"/><path d="M 128 16 L 144 16" class="rail-track" data-id="textbox-right" data-seq="start(8, 1, east) forward(1)"/></g></g><path d="M 224 16 L 256 16" class="rail-track" data-id="seq-1" data-seq="start(14, 1, east) forward(2)"/><g transform="translate(256, 0)" class="sequence-child" data-index="2"><g class="textbox-expression" data-type="terminal" data-text=")"><rect x="0" y="0" width="64" height="32" rx="9.6" class="textbox terminal"/><text x="32" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">)</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 64 16 L 80 16" class="rail-track" data-id="textbox-right" data-seq="start(4, 1, east) forward(1)"/><path d="M 64 16 L 80 16" class="rail-track" data-id="textbox-right" data-seq="start(4, 1, east) forward(1)"/></g></g></g><path d="M 0 64 A 16 16 0 0 1 16 80 L 16 80 A 16 16 0 0 0 32 96 L 32 96" class="rail-track" data-id="child1-left" data-seq="start(0, 4, east) turnRight() forward(0) turnLeft() forward(0)"/><path d="M 384 64 A 16 16 0 0 0 368 80 L 368 80 A 16 16 0 0 1 352 96 L 352 96" class="rail-track" data-id="child1-right" data-seq="start(24, 4, west) turnLeft() forward(0) turnRight() forward(0)"/></g><circle cx="432" cy="80" r="14.4" class="end-endpoint"/><path d="M 20 80 L 32 80" class="rail-track" data-id="start-connection" data-seq="start(1.25, 5, east) forward(0.75)"/><path d="M 416 80 L 428 80" class="rail-track" data-id="end-connection" data-seq="start(26, 5, east) forward(0.75)"/></svg>
+        <div class="diagram-container" data-debug-ast="stack(nonterminal(&quot;number&quot;), sequence(terminal(&quot;(&quot;), nonterminal(&quot;expression&quot;), terminal(&quot;)&quot;)))">
+            <svg width="480" height="112" viewBox="0 0 480 112"><circle cx="16" cy="32" r="14.4" class="start-endpoint"/><g transform="translate(48, 16)" class="main-expression" data-rule="factor"><g transform="translate(144, 0)" class="stack-child" data-index="0" data-alternative="true"><g class="textbox-expression" data-type="nonterminal" data-text="number"><rect x="16" y="0" width="64" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">number</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 0 16 L 144 16" class="rail-track" data-id="child0-left" data-seq="start(0, 1, east) forward(9)"/><path d="M 240 16 L 384 16" class="rail-track" data-id="child0-right" data-seq="start(15, 1, east) forward(9)"/><g transform="translate(32, 48)" class="stack-child" data-index="1" data-alternative="true"><g transform="translate(0, 0)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="terminal" data-text="("><rect x="16" y="0" width="32" height="32" rx="9.6" class="textbox terminal"/><text x="32" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">(</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 48 16 L 64 16" class="rail-track" data-id="textbox-right" data-seq="start(3, 1, east) forward(1)"/><path d="M 48 16 L 64 16" class="rail-track" data-id="textbox-right" data-seq="start(3, 1, east) forward(1)"/></g></g><path d="M 64 16 L 96 16" class="rail-track" data-id="seq-0" data-seq="start(4, 1, east) forward(2)"/><g transform="translate(96, 0)" class="sequence-child" data-index="1"><g class="textbox-expression" data-type="nonterminal" data-text="expression"><rect x="16" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="64" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">expression</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 112 16 L 128 16" class="rail-track" data-id="textbox-right" data-seq="start(7, 1, east) forward(1)"/><path d="M 112 16 L 128 16" class="rail-track" data-id="textbox-right" data-seq="start(7, 1, east) forward(1)"/></g></g><path d="M 224 16 L 256 16" class="rail-track" data-id="seq-1" data-seq="start(14, 1, east) forward(2)"/><g transform="translate(256, 0)" class="sequence-child" data-index="2"><g class="textbox-expression" data-type="terminal" data-text=")"><rect x="16" y="0" width="32" height="32" rx="9.6" class="textbox terminal"/><text x="32" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">)</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 48 16 L 64 16" class="rail-track" data-id="textbox-right" data-seq="start(3, 1, east) forward(1)"/><path d="M 48 16 L 64 16" class="rail-track" data-id="textbox-right" data-seq="start(3, 1, east) forward(1)"/></g></g></g><path d="M 0 16 L 0 16 A 16 16 0 0 1 16 32 L 16 48 A 16 16 0 0 0 32 64 L 64 64" class="rail-track" data-id="child1-left" data-seq="start(0, 1, east) forward(0) turnRight() forward(1) turnLeft() forward(2)"/><path d="M 384 64 L 416 64 A 16 16 0 0 1 432 80 L 432 96 A 16 16 0 0 0 448 112 L 416 112" class="rail-track" data-id="child1-right" data-seq="start(24, 4, east) forward(2) turnRight() forward(1) turnLeft() forward(-2)"/></g><circle cx="464" cy="32" r="14.4" class="end-endpoint"/><path d="M 16 32 L 48 32" class="rail-track" data-id="start-connection" data-seq="start(1, 2, east) forward(2)"/><path d="M 464 32 L 432 32" class="rail-track" data-id="end-connection" data-seq="start(29, 2, west) forward(2)"/></svg>
         </div>
     </div>
     <div class="syntax-rule" id="syntax-rule-number">
         <h2>number</h2>
         <p><code>number := 1*DIGIT</code></p>
-        <div class="diagram-container">
-            <svg width="352" height="80" viewBox="0 0 352 80"><circle cx="16" cy="48" r="14.4" class="start-endpoint"/><g transform="translate(32, 16)" class="main-expression" data-rule="number"><g transform="translate(0, 16)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="nonterminal" data-text="DIGIT"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">DIGIT</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g><path d="M 96 32 L 128 32" class="rail-track" data-id="seq-0" data-seq="start(6, 2, east) forward(2)"/><g transform="translate(128, 0)" class="sequence-child" data-index="1"><g transform="translate(32, 16)" class="loop-child"><g class="textbox-expression" data-type="nonterminal" data-text="DIGIT"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">DIGIT</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g><path d="M 32 32 A 16 16 0 0 1 16 16 L 16 16 A 16 16 0 0 1 32 0 L 128 0 A 16 16 0 0 1 144 16 L 144 16 A 16 16 0 0 1 128 32" class="rail-track" data-id="loop-path" data-seq="start(2, 2, west) turnRight() forward(0) turnRight() forward(6) turnRight() forward(0) turnRight()"/><path d="M 0 32 L 32 32" class="rail-track" data-id="through-left" data-seq="start(0, 2, east) forward(2)"/><path d="M 160 32 L 128 32" class="rail-track" data-id="through-right" data-seq="start(10, 2, west) forward(2)"/></g></g><circle cx="336" cy="48" r="14.4" class="end-endpoint"/><path d="M 20 48 L 32 48" class="rail-track" data-id="start-connection" data-seq="start(1.25, 3, east) forward(0.75)"/><path d="M 320 48 L 332 48" class="rail-track" data-id="end-connection" data-seq="start(20, 3, east) forward(0.75)"/></svg>
+        <div class="diagram-container" data-debug-ast="sequence(nonterminal(&quot;DIGIT&quot;), loop(nonterminal(&quot;DIGIT&quot;)))">
+            <svg width="384" height="80" viewBox="0 0 384 80"><circle cx="16" cy="48" r="14.4" class="start-endpoint"/><g transform="translate(48, 16)" class="main-expression" data-rule="number"><g transform="translate(0, 16)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="nonterminal" data-text="DIGIT"><rect x="16" y="0" width="64" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">DIGIT</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 96 32 L 128 32" class="rail-track" data-id="seq-0" data-seq="start(6, 2, east) forward(2)"/><g transform="translate(128, 0)" class="sequence-child" data-index="1"><g transform="translate(32, 16)" class="loop-child"><g class="textbox-expression" data-type="nonterminal" data-text="DIGIT"><rect x="16" y="0" width="64" height="32" rx="9.6" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">DIGIT</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 32 32 A 16 16 0 0 1 16 16 L 16 16 A 16 16 0 0 1 32 0 L 128 0 A 16 16 0 0 1 144 16 L 144 16 A 16 16 0 0 1 128 32" class="rail-track" data-id="loop-path" data-seq="start(2, 2, west) turnRight() forward(0) turnRight() forward(6) turnRight() forward(0) turnRight()"/><path d="M 0 32 L 32 32" class="rail-track" data-id="through-left" data-seq="start(0, 2, east) forward(2)"/><path d="M 128 32 L 160 32" class="rail-track" data-id="through-right" data-seq="start(8, 2, east) forward(2)"/></g></g><circle cx="368" cy="48" r="14.4" class="end-endpoint"/><path d="M 16 48 L 48 48" class="rail-track" data-id="start-connection" data-seq="start(1, 3, east) forward(2)"/><path d="M 368 48 L 336 48" class="rail-track" data-id="end-connection" data-seq="start(23, 3, west) forward(2)"/></svg>
         </div>
     </div>
     <div class="syntax-rule" id="syntax-rule-DIGIT">
         <h2>DIGIT</h2>
         <p><code>DIGIT := %x30-39</code></p>
-        <div class="diagram-container">
-            <svg width="160" height="64" viewBox="0 0 160 64"><circle cx="16" cy="32" r="14.4" class="start-endpoint"/><g transform="translate(32, 16)" class="main-expression" data-rule="DIGIT"><g class="textbox-expression" data-type="terminal" data-text="%x30-39"><rect x="0" y="0" width="96" height="32" rx="9.6" class="textbox terminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">%x30-39</text><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M -16 16 L 0 16" class="rail-track" data-id="textbox-left" data-seq="start(-1, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/><path d="M 96 16 L 112 16" class="rail-track" data-id="textbox-right" data-seq="start(6, 1, east) forward(1)"/></g></g><circle cx="144" cy="32" r="14.4" class="end-endpoint"/><path d="M 20 32 L 32 32" class="rail-track" data-id="start-connection" data-seq="start(1.25, 2, east) forward(0.75)"/><path d="M 128 32 L 140 32" class="rail-track" data-id="end-connection" data-seq="start(8, 2, east) forward(0.75)"/></svg>
+        <div class="diagram-container" data-debug-ast="terminal(&quot;%x30-39&quot;)">
+            <svg width="192" height="64" viewBox="0 0 192 64"><circle cx="16" cy="32" r="14.4" class="start-endpoint"/><g transform="translate(48, 16)" class="main-expression" data-rule="DIGIT"><g class="textbox-expression" data-type="terminal" data-text="%x30-39"><rect x="16" y="0" width="64" height="32" rx="9.6" class="textbox terminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">%x30-39</text><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="rail-track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="rail-track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><circle cx="176" cy="32" r="14.4" class="end-endpoint"/><path d="M 16 32 L 48 32" class="rail-track" data-id="start-connection" data-seq="start(1, 2, east) forward(2)"/><path d="M 176 32 L 144 32" class="rail-track" data-id="end-connection" data-seq="start(11, 2, west) forward(2)"/></svg>
         </div>
     </div>
 
@@ -191,9 +216,10 @@
         function addGridToSVGs() {
             const svgs = document.querySelectorAll('svg');
             const gridSize = 16; // Match the grid size from the renderer
-            const patternId = 'grid-pattern'; // Same ID in each SVG
             
-            svgs.forEach((svg) => {
+            svgs.forEach((svg, svgIndex) => {
+                const patternId = `grid-pattern-${svgIndex}`; // Unique ID per SVG
+                
                 // Create defs element if it doesn't exist, append at end
                 let defs = svg.querySelector('defs');
                 if (!defs) {
@@ -208,7 +234,14 @@
                 pattern.setAttribute('width', gridSize);
                 pattern.setAttribute('height', gridSize);
                 
-                // Create thin grid lines
+                // Add a light background to the pattern to make it more visible
+                const patternBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                patternBg.setAttribute('width', gridSize);
+                patternBg.setAttribute('height', gridSize);
+                patternBg.setAttribute('fill', 'rgba(255, 182, 193, 0.05)'); // Very subtle pink background
+                pattern.appendChild(patternBg);
+                
+                // Create subtle grid pattern with short lines at intersections
                 function createGridLine(x1, y1, x2, y2) {
                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                     line.setAttribute('x1', x1);
@@ -216,33 +249,42 @@
                     line.setAttribute('x2', x2);
                     line.setAttribute('y2', y2);
                     line.setAttribute('stroke', 'hotpink');
-                    line.setAttribute('stroke-width', '0.5');
-                    line.setAttribute('opacity', '0.3');
+                    line.setAttribute('stroke-width', '1');
+                    line.setAttribute('opacity', '0.6');
                     pattern.appendChild(line);
                 }
 
-                // Create horizontal lines
-                createGridLine(0, 0, 5, 0);
-                createGridLine(gridSize-5, 0, gridSize, 0);
+                // Create short horizontal lines (left and right edges)
+                createGridLine(0, 0, 4, 0);
+                createGridLine(gridSize-4, 0, gridSize, 0);
                 
-                // Create vertical line
-                createGridLine(0, 0, 0, 5);
-                createGridLine(0, gridSize-5, 0, gridSize);
-                
+                // Create short vertical lines (top and bottom edges)
+                createGridLine(0, 0, 0, 4);
+                createGridLine(0, gridSize-4, 0, gridSize);
              
                 defs.appendChild(pattern);
                 
-                // Create background rectangle and append at end
+                // Get SVG dimensions
+                const svgRect = svg.getBoundingClientRect();
+                const svgWidth = svg.getAttribute('width') || svgRect.width;
+                const svgHeight = svg.getAttribute('height') || svgRect.height;
+                
+                // Create background rectangle that covers the entire SVG
                 const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 background.setAttribute('x', '0');
                 background.setAttribute('y', '0');
-                background.setAttribute('width', '100%');
-                background.setAttribute('height', '100%');
+                background.setAttribute('width', svgWidth);
+                background.setAttribute('height', svgHeight);
                 background.setAttribute('fill', `url(#${patternId})`);
                 background.setAttribute('class', 'grid-background');
                 
-                // Append background at the end of the SVG
-                svg.appendChild(background);
+                // Insert background right after defs but before any other content
+                const firstChild = svg.children[0];
+                if (firstChild && firstChild !== defs) {
+                    svg.insertBefore(background, firstChild);
+                } else {
+                    svg.appendChild(background);
+                }
             });
         }
         
@@ -253,13 +295,71 @@
             addGridToSVGs();
         }
         
+        // Add bounding boxes to all group elements
+        function addBoundingBoxes() {
+            const svgs = document.querySelectorAll('svg');
+            
+            svgs.forEach((svg) => {
+                const groups = svg.querySelectorAll('g[transform]');
+                
+                groups.forEach((group) => {
+                    // Get the bounding box of the group's content
+                    const bbox = group.getBBox();
+                    
+                    // Create a bounding box rectangle aligned with grid
+                    const boundingBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    boundingBox.setAttribute('x', bbox.x);
+                    boundingBox.setAttribute('y', bbox.y);
+                    boundingBox.setAttribute('width', bbox.width);
+                    boundingBox.setAttribute('height', bbox.height);
+                    boundingBox.setAttribute('fill', 'none');
+                    boundingBox.setAttribute('stroke', 'hotpink');
+                    boundingBox.setAttribute('stroke-width', '0.5');
+                    boundingBox.setAttribute('opacity', '0.9');
+                    boundingBox.setAttribute('class', 'bounding-box');
+                    
+                    // Insert at the beginning of the group so it's behind content
+                    group.insertBefore(boundingBox, group.firstChild);
+                });
+            });
+        }
+        
+        // Add bounding boxes when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', addBoundingBoxes);
+        } else {
+            addBoundingBoxes();
+        }
+        
         // Optional: Add toggle functionality
         document.addEventListener('keydown', function(e) {
             if (e.key === 'g' && e.ctrlKey) {
                 e.preventDefault();
+                console.log('Ctrl+G pressed - toggling debug view');
+                
                 const gridElements = document.querySelectorAll('.grid-background');
-                gridElements.forEach(grid => {
-                    grid.style.display = grid.style.display === 'none' ? '' : 'none';
+                const boundingBoxElements = document.querySelectorAll('.bounding-box');
+                
+                console.log(`Found ${gridElements.length} grid elements and ${boundingBoxElements.length} bounding boxes`);
+                
+                gridElements.forEach((grid, index) => {
+                    const wasVisible = grid.classList.contains('visible');
+                    if (wasVisible) {
+                        grid.classList.remove('visible');
+                    } else {
+                        grid.classList.add('visible');
+                    }
+                    console.log(`Grid ${index}: ${wasVisible ? 'visible' : 'hidden'} -> ${!wasVisible ? 'visible' : 'hidden'}`);
+                });
+                
+                boundingBoxElements.forEach((bbox, index) => {
+                    const wasVisible = bbox.classList.contains('visible');
+                    if (wasVisible) {
+                        bbox.classList.remove('visible');
+                    } else {
+                        bbox.classList.add('visible');
+                    }
+                    console.log(`BBox ${index}: ${wasVisible ? 'visible' : 'hidden'} -> ${!wasVisible ? 'visible' : 'hidden'}`);
                 });
             }
         });

@@ -64,28 +64,31 @@ class RenderContext {
      * @param {number} baseline - Baseline position in grid units for track connections
      */
     addTextBox(gridX, gridY, gridWidth, gridHeight, text, boxType, baseline) {
-        const w = gridWidth * this.gridSize;
         const h = gridHeight * this.gridSize;
+        
+        // Text box should exclude rail connection areas (1 unit on each side)
+        const boxWidth = (gridWidth - 2) * this.gridSize;
+        const boxX = 1 * this.gridSize; // Start 1 grid unit from left edge
         
         this.svg += `<g class="textbox-expression" data-type="${boxType}" data-text="${this.escapeXml(text)}">`;
         
-        // Draw box at relative (0,0) within group - CSS classes handle styling differences
-        this.svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="${this.textBoxRadius}" class="textbox ${boxType}"/>`;
+        // Draw box with correct width, positioned to leave space for rails
+        this.svg += `<rect x="${boxX}" y="0" width="${boxWidth}" height="${h}" rx="${this.textBoxRadius}" class="textbox ${boxType}"/>`;
         
-        // Draw text centered in box - SVG text centering
-        const textX = w / 2;
+        // Draw text centered in the actual text box area (not the full element width)
+        const textX = boxX + boxWidth / 2;
         const textY = h / 2;
         this.svg += `<text x="${textX}" y="${textY}" text-anchor="middle" dominant-baseline="middle" class="textbox-text ${boxType}">${this.escapeXml(text)}</text>`;
         
-        // Add connecting tracks
+        // Add connecting tracks per specification
         const leftTrack = this.trackBuilder
-            .start(-1, baseline, Direction.EAST)
+            .start(0, baseline, Direction.EAST)
             .forward(1)
             .finish('textbox-left');
         this.svg += leftTrack;
         
         const rightTrack = this.trackBuilder
-            .start(gridWidth, baseline, Direction.EAST)
+            .start(gridWidth - 1, baseline, Direction.EAST)
             .forward(1)
             .finish('textbox-right');
         this.svg += rightTrack;
@@ -130,14 +133,9 @@ class RenderContext {
         groupTag += '>';
         this.svg += groupTag;
         
-        // Create a new context for the child that starts at (0,0)
-        const childContext = new RenderContext(this.gridSize, this.endpointRadius, this.textBoxRadius);
-        
-        // Render child in its own coordinate space
-        child.render(childContext);
-        
-        // Add the child's SVG to our SVG
-        this.svg += childContext.svg;
+        // Render child directly in this context's coordinate system
+        // The SVG transform handles positioning, so child renders at (0,0) relative to group
+        child.render(this);
         
         // Close the group
         this.svg += '</g>';
@@ -177,9 +175,8 @@ class RenderContext {
 
 /**
  * @typedef {Object} DiagramElement
- * @property {string} type - Element type ('textBox', 'sequence', 'stack', 'bypass', 'loop')
- * @property {string} [text] - Text content (for textBox)
- * @property {string} [boxType] - Box type ('terminal' or 'nonterminal')
+ * @property {string} type - Element type ('terminal', 'nonterminal', 'sequence', 'stack', 'bypass', 'loop')
+ * @property {string} [text] - Text content (for terminal/nonterminal)
  * @property {DiagramElement[]} [elements] - Child elements (for containers)
  * @property {DiagramElement} [element] - Single child element (for wrappers)
  */
@@ -214,19 +211,20 @@ class Expression {
 }
 
 /**
- * Text box expression (terminal or nonterminal)
+ * Base class for text box expressions (terminals and nonterminals)
  * @extends Expression
+ * @abstract
  */
 class TextBoxExpression extends Expression {
     /**
      * Create a text box expression
      * @param {string} text - Text to display in the box
-     * @param {'terminal'|'nonterminal'} [boxType='nonterminal'] - Type of text box
+     * @param {'terminal'|'nonterminal'} boxType - Type of text box
      * @param {number} [fontSize=14] - Font size in pixels
      * @param {string} [fontFamily='monospace'] - Font family
      * @param {number} [gridSize=16] - Grid size in pixels
      */
-    constructor(text, boxType = 'nonterminal', fontSize = 14, fontFamily = 'monospace', gridSize = 16) {
+    constructor(text, boxType, fontSize = 14, fontFamily = 'monospace', gridSize = 16) {
         super();
         /** @type {string} */
         this.text = text;
@@ -253,6 +251,40 @@ class TextBoxExpression extends Expression {
     render(ctx) {
         // Use RenderContext to add text box at (0,0) in grid coordinates
         ctx.addTextBox(0, 0, this.width, this.height, this.text, this.boxType, this.baseline);
+    }
+}
+
+/**
+ * Terminal expression (quoted literals, hex values, etc.)
+ * @extends TextBoxExpression
+ */
+class TerminalExpression extends TextBoxExpression {
+    /**
+     * Create a terminal expression
+     * @param {string} text - Text to display in the box
+     * @param {number} [fontSize=14] - Font size in pixels
+     * @param {string} [fontFamily='monospace'] - Font family
+     * @param {number} [gridSize=16] - Grid size in pixels
+     */
+    constructor(text, fontSize = 14, fontFamily = 'monospace', gridSize = 16) {
+        super(text, 'terminal', fontSize, fontFamily, gridSize);
+    }
+}
+
+/**
+ * Nonterminal expression (rule references)
+ * @extends TextBoxExpression
+ */
+class NonterminalExpression extends TextBoxExpression {
+    /**
+     * Create a nonterminal expression
+     * @param {string} text - Text to display in the box
+     * @param {number} [fontSize=14] - Font size in pixels
+     * @param {string} [fontFamily='monospace'] - Font family
+     * @param {number} [gridSize=16] - Grid size in pixels
+     */
+    constructor(text, fontSize = 14, fontFamily = 'monospace', gridSize = 16) {
+        super(text, 'nonterminal', fontSize, fontFamily, gridSize);
     }
 }
 
@@ -363,7 +395,7 @@ class StackExpression extends Expression {
                 
                 ctx.trackBuilder
                     .start(xOffset + child.width, this.baseline, Direction.EAST)
-                    .forward(2 + dx) // 2 units + THIS child's centering offset to right edge
+                    .forward(this.width - (xOffset + child.width))
                     .finish(`child${i}-right`);
             } else {
                 // Other children: handle width centering and vertical routing
@@ -379,14 +411,14 @@ class StackExpression extends Expression {
                     .forward(2) // 2 units to child start
                     .finish(`child${i}-left`);
                 
-                // Right side: mirrored routing from child back to main baseline
+                // Right side: route from child exit back to stack baseline
                 ctx.trackBuilder
-                    .start(xOffset + child.width, childBaseline, Direction.EAST)
+                    .start(xOffset + child.width + 2, childBaseline, Direction.EAST)
                     .forward(2) // 2 units from child end
-                    .turnLeft()
-                    .forward(dy - 2) // -2 for the quarter circles
                     .turnRight()
-                    .forward(dx) // center THIS child
+                    .forward(dy - 2) // -2 for the quarter circles  
+                    .turnLeft()
+                    .forward(this.width - (xOffset + child.width + 4)) // to stack edge
                     .finish(`child${i}-right`);
             }
             
@@ -431,7 +463,7 @@ class BypassExpression extends Expression {
         // Render child using RenderContext
         ctx.renderChild(this.child, childX, childY, 'bypass-child');
         
-        // Draw the bypass path (above the child)
+        // Draw the bypass path (above the child) per specification
         ctx.trackBuilder
             .start(0, this.baseline, Direction.EAST)
             .turnLeft()
@@ -443,15 +475,15 @@ class BypassExpression extends Expression {
             .turnLeft()
             .finish('bypass-path');
         
-        // Through paths
+        // Through path connects entry to child and child to exit
         ctx.trackBuilder
             .start(0, this.baseline, Direction.EAST)
-            .forward(2)
+            .forward(childX)
             .finish('through-left');
         
         ctx.trackBuilder
-            .start(this.width, this.baseline, Direction.WEST)
-            .forward(2)
+            .start(childX + this.child.width, this.baseline, Direction.EAST)
+            .forward(this.width - (childX + this.child.width))
             .finish('through-right');
     }
 }
@@ -501,15 +533,15 @@ class LoopExpression extends Expression {
             .turnRight()
             .finish('loop-path');
         
-        // Through paths
+        // Through path connects entry to child and child to exit
         ctx.trackBuilder
             .start(0, this.baseline, Direction.EAST)
-            .forward(2)
+            .forward(childX)
             .finish('through-left');
         
         ctx.trackBuilder
-            .start(this.width, this.baseline, Direction.WEST)
-            .forward(2)
+            .start(childX + this.child.width, this.baseline, Direction.EAST)
+            .forward(this.width - (childX + this.child.width))
             .finish('through-right');
     }
 }
@@ -558,8 +590,10 @@ class SVGRenderer {
         }
         
         switch (element.type) {
-            case 'textBox':
-                return new TextBoxExpression(element.text, element.boxType, this.fontSize, this.fontFamily, this.gridSize);
+            case 'terminal':
+                return new TerminalExpression(element.text, this.fontSize, this.fontFamily, this.gridSize);
+            case 'nonterminal':
+                return new NonterminalExpression(element.text, this.fontSize, this.fontFamily, this.gridSize);
             case 'sequence':
                 return new SequenceExpression(element.elements.map(el => this.createExpression(el)));
             case 'stack':
@@ -600,7 +634,7 @@ class SVGRenderer {
      * @returns {string} Complete SVG markup
      */
     generateSVG(expression, ruleName) {
-        const width = (expression.width + 4) * this.gridSize; // Add padding
+        const width = (expression.width + 6) * this.gridSize; // 1 + 2 + expression + 2 + 1 = 6 padding
         const height = (expression.height + 2) * this.gridSize; // Add padding
 
         let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
@@ -613,23 +647,24 @@ class SVGRenderer {
         const startY = 1 + expression.baseline; // At baseline position
         ctx.addEndpoint(startX, startY, 'start');
 
-        // Render main expression at grid coordinates (2, 1) to leave padding
-        ctx.renderChild(expression, 2, 1, 'main-expression', { rule: ruleName });
+        // Render main expression at grid coordinates - positioned after start rail (2 units)
+        const expressionX = startX + 2; // Start endpoint + 2 units for rail
+        ctx.renderChild(expression, expressionX, 1, 'main-expression', { rule: ruleName });
 
-        // Add end endpoint at grid coordinates
-        const endX = 2 + expression.width + 1; // After expression + 1 grid unit
+        // Add end endpoint at grid coordinates - positioned after expression + end rail (2 units)
+        const endX = expressionX + expression.width + 2; // After expression + 2 units for rail
         const endY = 1 + expression.baseline; // At baseline position
         ctx.addEndpoint(endX, endY, 'end');
 
         // Add connecting tracks between endpoints and expression
         ctx.trackBuilder
-            .start(startX + 0.25, startY, Direction.EAST) // Start just after start endpoint circle
-            .forward(0.75) // Connect to expression
+            .start(startX, startY, Direction.EAST) // Start from center of start endpoint
+            .forward(2) // Go 2 units east to expression
             .finish('start-connection');
         
         ctx.trackBuilder
-            .start(2 + expression.width, startY, Direction.EAST) // Start after expression
-            .forward(0.75) // Connect to end endpoint
+            .start(endX, endY, Direction.WEST) // Start from center of end endpoint
+            .forward(2) // Go 2 units west from expression
             .finish('end-connection');
 
         svg += ctx.svg;

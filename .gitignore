@@ -11,11 +11,5 @@ coverage/
 *.temp
 
 # Generated output files - don't commit these
-*-output.html
-*-simplified.html
-
-test-cli-output.html
-**/*-output.html
-**/*-generated.html
-**/*-diagram.html
-**/*-simplified.html
+**/*.html
+examples/*.html
