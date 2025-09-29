@@ -10,7 +10,9 @@
   "scripts": {
     "generate": "node bin/cli.js",
     "test": "node test/test.js",
-    "dev": "node bin/cli.js"
+    "dev": "node bin/cli.js",
+    "examples": "pwsh -File scripts/Generate-Examples.ps1",
+    "examples:verbose": "pwsh -File scripts/Generate-Examples.ps1 -Verbose"
   },
   "keywords": [
     "abnf",

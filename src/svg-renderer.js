@@ -325,18 +325,29 @@ class StackExpression extends Expression {
         // Calculate layout dimensions by stacking alternatives vertically
         // Children are already constructed with their layouts calculated
         const maxWidth = Math.max(...this.children.map(child => child.width));
-        const totalHeight = this.children.reduce((sum, child) => sum + child.height + 1, -1); // +1 for spacing
+        
+        // Stack grows downward from first child baseline with 1-unit gaps
+        let totalHeight = this.children[0].height; // Start with first child
+        for (let i = 1; i < this.children.length; i++) {
+            totalHeight += 1; // 1-unit gap
+            totalHeight += this.children[i].height;
+        }
 
-        this.width = maxWidth + 4; // Extra width for routing
-        this.height = totalHeight + 4; // Extra height for routing
-        this.baseline = Math.floor(this.height / 2);
+        this.width = maxWidth + 4; // Add 2 units each side for quarter circles
+        this.height = totalHeight;
+        this.baseline = this.children[0].baseline; // Use first child's baseline
     }
 
     render(ctx) {
-        // Render each child at its calculated position
-        let currentY = 2; // Start with some padding
+        // First child is positioned at baseline (y=0 relative to stack)
+        // Other children grow downward with 1-unit gaps
+        let currentY = 0;
+        const maxWidth = Math.max(...this.children.map(child => child.width));
+        
         this.children.forEach((child, i) => {
-            const xOffset = 2 + (Math.max(...this.children.map(c => c.width)) - child.width) / 2;
+            // Each child gets its own centering offset based on its width
+            const dx = Math.floor((maxWidth - child.width) / 2); // half width difference for THIS child
+            const xOffset = 2 + dx; // 2 units for left rail space + THIS child's centering offset
             const childBaseline = currentY + child.baseline;
             
             // Render child using RenderContext
@@ -344,59 +355,45 @@ class StackExpression extends Expression {
             
             // Add tracks for routing
             if (i === 0) {
-                // First child: straight tracks
+                // First child: straight through on main baseline
                 ctx.trackBuilder
                     .start(0, this.baseline, Direction.EAST)
                     .forward(xOffset)
                     .finish(`child${i}-left`);
                 
                 ctx.trackBuilder
-                    .start(xOffset + child.width, childBaseline, Direction.EAST)
-                    .forward(this.width - (xOffset + child.width))
+                    .start(xOffset + child.width, this.baseline, Direction.EAST)
+                    .forward(2 + dx) // 2 units + THIS child's centering offset to right edge
                     .finish(`child${i}-right`);
             } else {
-                // Other children: branching paths
-                const verticalDistance = Math.abs(childBaseline - this.baseline);
-                const horizontalToChild = xOffset;
+                // Other children: handle width centering and vertical routing
+                const dy = childBaseline - this.baseline; // vertical distance
                 
-                if (childBaseline > this.baseline) {
-                    // Child is below main baseline - route down
-                    ctx.trackBuilder
-                        .start(0, this.baseline, Direction.EAST)
-                        .turnRight()
-                        .forward(verticalDistance - 2)
-                        .turnLeft()
-                        .forward(horizontalToChild - 2)
-                        .finish(`child${i}-left`);
-                    
-                    ctx.trackBuilder
-                        .start(this.width, this.baseline, Direction.WEST)
-                        .turnLeft()
-                        .forward(verticalDistance - 2) 
-                        .turnRight()
-                        .forward(this.width - (xOffset + child.width) - 2)
-                        .finish(`child${i}-right`);
-                } else {
-                    // Child is above main baseline - route up
-                    ctx.trackBuilder
-                        .start(0, this.baseline, Direction.EAST)
-                        .turnLeft()
-                        .forward(verticalDistance - 2)
-                        .turnRight()
-                        .forward(horizontalToChild - 2)
-                        .finish(`child${i}-left`);
-                    
-                    ctx.trackBuilder
-                        .start(this.width, this.baseline, Direction.WEST)
-                        .turnRight() 
-                        .forward(verticalDistance - 2)
-                        .turnLeft()
-                        .forward(this.width - (xOffset + child.width) - 2)
-                        .finish(`child${i}-right`);
-                }
+                // Left side: route down to child with width adjustment for THIS child
+                ctx.trackBuilder
+                    .start(0, this.baseline, Direction.EAST)
+                    .forward(dx) // center THIS child
+                    .turnRight()
+                    .forward(dy - 2) // -2 for the quarter circles
+                    .turnLeft()
+                    .forward(2) // 2 units to child start
+                    .finish(`child${i}-left`);
+                
+                // Right side: mirrored routing from child back to main baseline
+                ctx.trackBuilder
+                    .start(xOffset + child.width, childBaseline, Direction.EAST)
+                    .forward(2) // 2 units from child end
+                    .turnLeft()
+                    .forward(dy - 2) // -2 for the quarter circles
+                    .turnRight()
+                    .forward(dx) // center THIS child
+                    .finish(`child${i}-right`);
             }
             
-            currentY += child.height + 1;
+            // Move to next child position (current child height + 1 unit gap)
+            if (i < this.children.length - 1) {
+                currentY += child.height + 1;
+            }
         });
     }
 }
