@@ -423,7 +423,7 @@ class StackExpression extends Expression {
                 ctx.trackBuilder
                     .start(xOffset + child.width + 2, childBaseline, Direction.EAST)
                     .forward(2) // 2 units from child end
-                    .turnRight()
+                    .turnLeft() // Turn UP (north) to return to baseline
                     .forward(dy - 2) // -2 for the quarter circles  
                     .turnLeft()
                     .forward(this.width - (xOffset + child.width + 4)) // to stack edge
