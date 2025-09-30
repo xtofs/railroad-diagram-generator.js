@@ -4,9 +4,9 @@ A command-line tool that converts ABNF (Augmented Backus-Naur Form) grammar file
 
 ## Example Output
 
-Here's a railroad diagram for a JSON-like grammar with optional elements and repetition:
+Here's an example railroad diagram for a rule that one might find in a JSON-like grammar:
 
-![Example Railroad Diagram](assets/example-diagram.svg?v=2)
+![Example Railroad Diagram](assets/example-diagram.svg)
 
 ## Features
 
@@ -68,20 +68,9 @@ The parser supports standard ABNF syntax as defined in RFC 5234:
 - **Terminal strings**: `rule = "literal"` or `'literal'`
 - **Comments**: `; This is a comment`
 
-### Example ABNF File
-
-```abnf
-; Simple arithmetic expression grammar
-expression = term ["+" expression]
-term = factor ["*" term]  
-factor = number / "(" expression ")"
-number = 1*DIGIT
-DIGIT = %x30-39
-```
-
 ## Project Structure
 
-```
+```plain
 ├── bin/
 │   └── cli.js              # Command-line interface
 ├── src/
@@ -119,39 +108,6 @@ The generated HTML includes:
     </div>
 </div>
 ```
-
-## Testing
-
-Run the test suite:
-
-```bash
-npm test
-```
-
-This will:
-1. Parse a sample ABNF file
-2. Generate static HTML output
-3. Verify file generation
-
-## Development
-
-### Adding New ABNF Features
-
-1. Update `abnf-parser.js` to handle new syntax
-2. Ensure the parser generates appropriate railroad function calls
-3. Test with sample ABNF files
-
-### Improving SVG Rendering
-
-1. Modify `svg-renderer.js` layout calculations
-2. Update rendering methods for better visual appearance
-3. Adjust CSS in `assets/diagram.css`
-
-### Template Customization
-
-1. Edit Handlebars templates in `html-generator.js`
-2. Add new template helpers as needed
-3. Update CSS styles for new template features
 
 ## Dependencies
 

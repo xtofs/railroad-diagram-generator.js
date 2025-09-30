@@ -1,14 +1,97 @@
-<svg width="481" height="129" viewBox="0 0 481 129" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">
+<svg width="481" height="129" viewBox="0 0 481 129" xmlns="http://www.w3.org/2000/svg"
+  class="railroad-diagram">
   <style>
-    /* Use the same styling as the main template */
+    
+    .railroad-diagram {background: white;}
     .endpoint { r: 11.2; fill: black; stroke: none; }
     .track { fill: none; stroke: #000; stroke-width: 6; stroke-linecap: butt; }
     .textbox { stroke-width: 2; stroke: black; rx: 12.8; ry: 12.8; fill: none; }
     .textbox.terminal { fill: rgb(200, 200, 200); }
     .textbox.nonterminal { fill: rgb(210, 210, 210); }
-    .textbox-text { font-family: Arial, sans-serif; font-size: 14px; fill: black; text-anchor: middle; dominant-baseline: middle; }
+    .textbox-text { font-family: Arial, sans-serif; font-size: 14px; fill: black; text-anchor:
+    middle; dominant-baseline: middle; }
     .textbox-text.nonterminal { text-decoration: underline; cursor: pointer; }
     .textbox-text.nonterminal:hover { fill: #0066cc; }
   </style>
-<circle cx="16" cy="32" class="endpoint"/><g transform="translate(48, 16)" class="main-expression"><g transform="translate(144, 0)" class="stack-child" data-index="0" data-alternative="true"><g class="textbox-expression" data-type="nonterminal" data-text="zero"><rect x="16" y="0" width="64" height="32" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">zero</text><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 0 16 L 144 16" class="track" data-id="child0-left" data-seq="start(0, 1, east) forward(9)"/><path d="M 240 16 L 384 16" class="track" data-id="child0-right" data-seq="start(15, 1, east) forward(9)"/><g transform="translate(32, 48)" class="stack-child" data-index="1" data-alternative="true"><g transform="translate(0, 16)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="nonterminal" data-text="digit1-9"><rect x="16" y="0" width="96" height="32" class="textbox nonterminal"/><text x="64" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">digit1-9</text><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 112 16 L 128 16" class="track" data-id="textbox-right" data-seq="start(7, 1, east) forward(1)"/><path d="M 112 16 L 128 16" class="track" data-id="textbox-right" data-seq="start(7, 1, east) forward(1)"/></g></g><path d="M 128 32 L 160 32" class="track" data-id="seq-0" data-seq="start(8, 2, east) forward(2)"/><g transform="translate(160, 0)" class="sequence-child" data-index="1"><g transform="translate(32, 16)" class="loop-child"><g class="textbox-expression" data-type="nonterminal" data-text="digit"><rect x="16" y="0" width="64" height="32" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">digit</text><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 32 32 A 16 16 0 0 1 16 16 L 16 16 A 16 16 0 0 1 32 0 L 128 0 A 16 16 0 0 1 144 16 L 144 16 A 16 16 0 0 1 128 32" class="track" data-id="loop-path" data-seq="start(2, 2, west) turnRight() forward(0) turnRight() forward(6) turnRight() forward(0) turnRight()"/><path d="M 0 32 L 32 32" class="track" data-id="through-left" data-seq="start(0, 2, east) forward(2)"/><path d="M 128 32 L 160 32" class="track" data-id="through-right" data-seq="start(8, 2, east) forward(2)"/></g></g><path d="M 0 16 A 16 16 0 0 1 16 32 L 16 64 A 16 16 0 0 0 32 80 L 32 80" class="track" data-id="child1-left" data-seq="start(0, 1, east) turnRight() forward(2) turnLeft() forward(0)"/><path d="M 352 80 L 352 80 A 16 16 0 0 0 368 64 L 368 32 A 16 16 0 0 1 384 16" class="track" data-id="child1-right" data-seq="start(22, 5, east) forward(0) turnLeft() forward(2) turnRight()"/></g><circle cx="464" cy="32" class="endpoint"/><path d="M 16 32 L 48 32" class="track" data-id="start-connection" data-seq="start(1, 2, east) forward(2)"/><path d="M 16 32 L 48 32" class="track" data-id="start-connection" data-seq="start(1, 2, east) forward(2)"/><path d="M 432 32 L 464 32" class="track" data-id="end-connection" data-seq="start(27, 2, east) forward(2)"/><path d="M 432 32 L 464 32" class="track" data-id="end-connection" data-seq="start(27, 2, east) forward(2)"/>
+  <circle cx="16" cy="32" class="endpoint" />
+  <g transform="translate(48, 16)" class="main-expression">
+    <g transform="translate(144, 0)" class="stack-child" data-index="0" data-alternative="true">
+      <g class="textbox-expression" data-type="nonterminal" data-text="zero">
+        <rect x="16" y="0" width="64" height="32" class="textbox nonterminal" />
+        <text x="48" y="16" text-anchor="middle" dominant-baseline="middle"
+          class="textbox-text terminal">"0"</text>
+        <path d="M 0 16 L 16 16" class="track" data-id="textbox-left"
+          data-seq="start(0, 1, east) forward(1)" />
+        <path d="M 0 16 L 16 16" class="track" data-id="textbox-left"
+          data-seq="start(0, 1, east) forward(1)" />
+        <path d="M 80 16 L 96 16" class="track" data-id="textbox-right"
+          data-seq="start(5, 1, east) forward(1)" />
+        <path d="M 80 16 L 96 16" class="track" data-id="textbox-right"
+          data-seq="start(5, 1, east) forward(1)" />
+      </g>
+    </g>
+    <path d="M 0 16 L 144 16" class="track" data-id="child0-left"
+      data-seq="start(0, 1, east) forward(9)" />
+    <path d="M 240 16 L 384 16" class="track" data-id="child0-right"
+      data-seq="start(15, 1, east) forward(9)" />
+    <g transform="translate(32, 48)" class="stack-child" data-index="1" data-alternative="true">
+      <g transform="translate(0, 16)" class="sequence-child" data-index="0">
+        <g class="textbox-expression" data-type="nonterminal" data-text="digit1-9">
+          <rect x="16" y="0" width="96" height="32" class="textbox nonterminal" />
+          <text x="64" y="16" text-anchor="middle" dominant-baseline="middle"
+            class="textbox-text nonterminal">digit1-9</text>
+          <path d="M 0 16 L 16 16" class="track" data-id="textbox-left"
+            data-seq="start(0, 1, east) forward(1)" />
+          <path d="M 0 16 L 16 16" class="track" data-id="textbox-left"
+            data-seq="start(0, 1, east) forward(1)" />
+          <path d="M 112 16 L 128 16" class="track" data-id="textbox-right"
+            data-seq="start(7, 1, east) forward(1)" />
+          <path d="M 112 16 L 128 16" class="track" data-id="textbox-right"
+            data-seq="start(7, 1, east) forward(1)" />
+        </g>
+      </g>
+      <path d="M 128 32 L 160 32" class="track" data-id="seq-0"
+        data-seq="start(8, 2, east) forward(2)" />
+      <g transform="translate(160, 0)" class="sequence-child" data-index="1">
+        <g transform="translate(32, 16)" class="loop-child">
+          <g class="textbox-expression" data-type="nonterminal" data-text="digit">
+            <rect x="16" y="0" width="64" height="32" class="textbox nonterminal" />
+            <text x="48" y="16" text-anchor="middle" dominant-baseline="middle"
+              class="textbox-text nonterminal">digit</text>
+            <path d="M 0 16 L 16 16" class="track" data-id="textbox-left"
+              data-seq="start(0, 1, east) forward(1)" />
+            <path d="M 0 16 L 16 16" class="track" data-id="textbox-left"
+              data-seq="start(0, 1, east) forward(1)" />
+            <path d="M 80 16 L 96 16" class="track" data-id="textbox-right"
+              data-seq="start(5, 1, east) forward(1)" />
+            <path d="M 80 16 L 96 16" class="track" data-id="textbox-right"
+              data-seq="start(5, 1, east) forward(1)" />
+          </g>
+        </g>
+        <path
+          d="M 32 32 A 16 16 0 0 1 16 16 L 16 16 A 16 16 0 0 1 32 0 L 128 0 A 16 16 0 0 1 144 16 L 144 16 A 16 16 0 0 1 128 32"
+          class="track" data-id="loop-path"
+          data-seq="start(2, 2, west) turnRight() forward(0) turnRight() forward(6) turnRight() forward(0) turnRight()" />
+        <path d="M 0 32 L 32 32" class="track" data-id="through-left"
+          data-seq="start(0, 2, east) forward(2)" />
+        <path d="M 128 32 L 160 32" class="track" data-id="through-right"
+          data-seq="start(8, 2, east) forward(2)" />
+      </g>
+    </g>
+    <path d="M 0 16 A 16 16 0 0 1 16 32 L 16 64 A 16 16 0 0 0 32 80 L 32 80" class="track"
+      data-id="child1-left"
+      data-seq="start(0, 1, east) turnRight() forward(2) turnLeft() forward(0)" />
+    <path d="M 352 80 L 352 80 A 16 16 0 0 0 368 64 L 368 32 A 16 16 0 0 1 384 16" class="track"
+      data-id="child1-right"
+      data-seq="start(22, 5, east) forward(0) turnLeft() forward(2) turnRight()" />
+  </g>
+  <circle cx="464" cy="32" class="endpoint" />
+  <path d="M 16 32 L 48 32" class="track" data-id="start-connection"
+    data-seq="start(1, 2, east) forward(2)" />
+  <path d="M 16 32 L 48 32" class="track" data-id="start-connection"
+    data-seq="start(1, 2, east) forward(2)" />
+  <path d="M 432 32 L 464 32" class="track" data-id="end-connection"
+    data-seq="start(27, 2, east) forward(2)" />
+  <path d="M 432 32 L 464 32" class="track" data-id="end-connection"
+    data-seq="start(27, 2, east) forward(2)" />
 </svg>
