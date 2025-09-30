@@ -4,11 +4,9 @@ A command-line tool that converts ABNF (Augmented Backus-Naur Form) grammar file
 
 ## Example Output
 
-Here's what a railroad diagram looks like for the ABNF rule `param := param-name "=" param-value`:
+Here's a railroad diagram for a JSON-like grammar with optional elements and repetition:
 
 ![Example Railroad Diagram](assets/example-diagram.svg)
-
-The diagram shows the visual flow: start → param-name → "=" → param-value → end
 
 ## Features
 

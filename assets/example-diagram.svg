@@ -1,42 +1,92 @@
-<svg width="481" height="65" viewBox="0 0 481 65" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">
+<svg width="500" height="160" viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">
   <style>
-    .endpoint { fill: #1976d2; stroke: #1976d2; stroke-width: 2; r: 8; }
-    .track { fill: none; stroke: #1976d2; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
-    .textbox.terminal { fill: #e3f2fd; stroke: #1976d2; stroke-width: 2; rx: 4; ry: 4; }
-    .textbox.nonterminal { fill: #fff3e0; stroke: #f57c00; stroke-width: 2; rx: 4; ry: 4; }
-    .textbox-text.terminal { font-family: 'Courier New', monospace; font-size: 14px; fill: #1976d2; font-weight: bold; }
-    .textbox-text.nonterminal { font-family: 'Courier New', monospace; font-size: 14px; fill: #f57c00; font-weight: bold; }
+    /* Use the same styling as the main template */
+    .endpoint { r: 11.2; fill: black; stroke: none; }
+    .track { fill: none; stroke: #000; stroke-width: 6; stroke-linecap: butt; }
+    .textbox { stroke-width: 2; stroke: black; rx: 12.8; ry: 12.8; fill: none; }
+    .textbox.terminal { fill: rgb(200, 200, 200); }
+    .textbox.nonterminal { fill: rgb(210, 210, 210); }
+    .textbox-text { font-family: Arial, sans-serif; font-size: 14px; fill: black; text-anchor: middle; dominant-baseline: middle; }
+    .textbox-text.nonterminal { text-decoration: underline; cursor: pointer; }
+    .textbox-text.nonterminal:hover { fill: #0066cc; }
   </style>
-  <circle cx="16" cy="32" class="endpoint"/>
-  <g transform="translate(48, 16)" class="main-expression">
-    <g transform="translate(0, 0)" class="sequence-child" data-index="0">
-      <g class="textbox-expression" data-type="nonterminal" data-text="param-name">
-        <rect x="16" y="0" width="96" height="32" class="textbox nonterminal"/>
-        <text x="64" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">param-name</text>
-        <path d="M 0 16 L 16 16" class="track"/>
-        <path d="M 112 16 L 128 16" class="track"/>
-      </g>
-    </g>
-    <path d="M 128 16 L 160 16" class="track"/>
-    <g transform="translate(160, 0)" class="sequence-child" data-index="1">
-      <g class="textbox-expression" data-type="terminal" data-text="&quot;=&quot;">
-        <rect x="16" y="0" width="32" height="32" class="textbox terminal"/>
-        <text x="32" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text terminal">"="</text>
-        <path d="M 0 16 L 16 16" class="track"/>
-        <path d="M 48 16 L 64 16" class="track"/>
-      </g>
-    </g>
-    <path d="M 224 16 L 256 16" class="track"/>
-    <g transform="translate(256, 0)" class="sequence-child" data-index="2">
-      <g class="textbox-expression" data-type="nonterminal" data-text="param-value">
-        <rect x="16" y="0" width="96" height="32" class="textbox nonterminal"/>
-        <text x="64" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">param-value</text>
-        <path d="M 0 16 L 16 16" class="track"/>
-        <path d="M 112 16 L 128 16" class="track"/>
-      </g>
-    </g>
-  </g>
-  <circle cx="464" cy="32" class="endpoint"/>
-  <path d="M 16 32 L 48 32" class="track"/>
-  <path d="M 432 32 L 464 32" class="track"/>
+  
+  <!-- array rule: "[" [value-list] "]" showing optional bypass -->
+  
+  <!-- Start endpoint -->
+  <circle class="endpoint" cx="16" cy="80"/>
+  
+  <!-- Track to opening bracket -->
+  <path class="track" d="M 27.2 80 L 48 80"/>
+  
+  <!-- Opening bracket terminal -->
+  <rect class="textbox terminal" x="48" y="68" width="24" height="24"/>
+  <text class="textbox-text terminal" x="60" y="80">[</text>
+  
+  <!-- Track after bracket splits for optional value-list -->
+  <path class="track" d="M 72 80 L 96 80"/>
+  
+  <!-- Upper bypass track for empty array -->
+  <path class="track" d="M 96 80 Q 96 60 112 60 L 288 60 Q 304 60 304 80"/>
+  
+  <!-- Lower track through value-list -->
+  <path class="track" d="M 96 80 L 112 80"/>
+  
+  <!-- value-list textbox -->
+  <rect class="textbox nonterminal" x="112" y="68" width="80" height="24"/>
+  <text class="textbox-text nonterminal" x="152" y="80">value-list</text>
+  
+  <!-- Track after value-list -->
+  <path class="track" d="M 192 80 L 304 80"/>
+  
+  <!-- Track to closing bracket -->
+  <path class="track" d="M 304 80 L 320 80"/>
+  
+  <!-- Closing bracket terminal -->
+  <rect class="textbox terminal" x="320" y="68" width="24" height="24"/>
+  <text class="textbox-text terminal" x="332" y="80">]</text>
+  
+  <!-- Track to end -->
+  <path class="track" d="M 344 80 L 472.8 80"/>
+  
+  <!-- End endpoint -->
+  <circle class="endpoint" cx="484" cy="80"/>
+  
+  <!-- value-list rule showing repetition loop: value *("," value) -->
+  
+  <!-- Start endpoint for value-list -->
+  <circle class="endpoint" cx="16" cy="120"/>
+  
+  <!-- Track to first value -->
+  <path class="track" d="M 27.2 120 L 48 120"/>
+  
+  <!-- value textbox -->
+  <rect class="textbox nonterminal" x="48" y="108" width="48" height="24"/>
+  <text class="textbox-text nonterminal" x="72" y="120">value</text>
+  
+  <!-- Track after first value -->
+  <path class="track" d="M 96 120 L 128 120"/>
+  
+  <!-- Loop back track -->
+  <path class="track" d="M 128 120 Q 128 140 144 140 L 240 140"/>
+  
+  <!-- Comma terminal in loop -->
+  <rect class="textbox terminal" x="160" y="128" width="24" height="24"/>
+  <text class="textbox-text terminal" x="172" y="140">,</text>
+  
+  <!-- Track to repeated value -->
+  <path class="track" d="M 184 140 L 208 140"/>
+  
+  <!-- Repeated value textbox -->
+  <rect class="textbox nonterminal" x="208" y="128" width="48" height="24"/>
+  <text class="textbox-text nonterminal" x="232" y="140">value</text>
+  
+  <!-- Complete the loop -->
+  <path class="track" d="M 256 140 Q 272 140 272 120 L 128 120"/>
+  
+  <!-- Forward track to end -->
+  <path class="track" d="M 128 120 L 472.8 120"/>
+  
+  <!-- End endpoint for value-list -->
+  <circle class="endpoint" cx="484" cy="120"/>
 </svg>
