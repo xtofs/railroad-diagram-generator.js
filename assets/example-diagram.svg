@@ -1,4 +1,4 @@
-<svg width="500" height="160" viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">
+<svg width="481" height="129" viewBox="0 0 481 129" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">
   <style>
     /* Use the same styling as the main template */
     .endpoint { r: 11.2; fill: black; stroke: none; }
@@ -10,83 +10,5 @@
     .textbox-text.nonterminal { text-decoration: underline; cursor: pointer; }
     .textbox-text.nonterminal:hover { fill: #0066cc; }
   </style>
-  
-  <!-- array rule: "[" [value-list] "]" showing optional bypass -->
-  
-  <!-- Start endpoint -->
-  <circle class="endpoint" cx="16" cy="80"/>
-  
-  <!-- Track to opening bracket -->
-  <path class="track" d="M 27.2 80 L 48 80"/>
-  
-  <!-- Opening bracket terminal -->
-  <rect class="textbox terminal" x="48" y="68" width="24" height="24"/>
-  <text class="textbox-text terminal" x="60" y="80">[</text>
-  
-  <!-- Track after bracket splits for optional value-list -->
-  <path class="track" d="M 72 80 L 96 80"/>
-  
-  <!-- Upper bypass track for empty array -->
-  <path class="track" d="M 96 80 Q 96 60 112 60 L 288 60 Q 304 60 304 80"/>
-  
-  <!-- Lower track through value-list -->
-  <path class="track" d="M 96 80 L 112 80"/>
-  
-  <!-- value-list textbox -->
-  <rect class="textbox nonterminal" x="112" y="68" width="80" height="24"/>
-  <text class="textbox-text nonterminal" x="152" y="80">value-list</text>
-  
-  <!-- Track after value-list -->
-  <path class="track" d="M 192 80 L 304 80"/>
-  
-  <!-- Track to closing bracket -->
-  <path class="track" d="M 304 80 L 320 80"/>
-  
-  <!-- Closing bracket terminal -->
-  <rect class="textbox terminal" x="320" y="68" width="24" height="24"/>
-  <text class="textbox-text terminal" x="332" y="80">]</text>
-  
-  <!-- Track to end -->
-  <path class="track" d="M 344 80 L 472.8 80"/>
-  
-  <!-- End endpoint -->
-  <circle class="endpoint" cx="484" cy="80"/>
-  
-  <!-- value-list rule showing repetition loop: value *("," value) -->
-  
-  <!-- Start endpoint for value-list -->
-  <circle class="endpoint" cx="16" cy="120"/>
-  
-  <!-- Track to first value -->
-  <path class="track" d="M 27.2 120 L 48 120"/>
-  
-  <!-- value textbox -->
-  <rect class="textbox nonterminal" x="48" y="108" width="48" height="24"/>
-  <text class="textbox-text nonterminal" x="72" y="120">value</text>
-  
-  <!-- Track after first value -->
-  <path class="track" d="M 96 120 L 128 120"/>
-  
-  <!-- Loop back track -->
-  <path class="track" d="M 128 120 Q 128 140 144 140 L 240 140"/>
-  
-  <!-- Comma terminal in loop -->
-  <rect class="textbox terminal" x="160" y="128" width="24" height="24"/>
-  <text class="textbox-text terminal" x="172" y="140">,</text>
-  
-  <!-- Track to repeated value -->
-  <path class="track" d="M 184 140 L 208 140"/>
-  
-  <!-- Repeated value textbox -->
-  <rect class="textbox nonterminal" x="208" y="128" width="48" height="24"/>
-  <text class="textbox-text nonterminal" x="232" y="140">value</text>
-  
-  <!-- Complete the loop -->
-  <path class="track" d="M 256 140 Q 272 140 272 120 L 128 120"/>
-  
-  <!-- Forward track to end -->
-  <path class="track" d="M 128 120 L 472.8 120"/>
-  
-  <!-- End endpoint for value-list -->
-  <circle class="endpoint" cx="484" cy="120"/>
+<circle cx="16" cy="32" class="endpoint"/><g transform="translate(48, 16)" class="main-expression"><g transform="translate(144, 0)" class="stack-child" data-index="0" data-alternative="true"><g class="textbox-expression" data-type="nonterminal" data-text="zero"><rect x="16" y="0" width="64" height="32" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">zero</text><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 0 16 L 144 16" class="track" data-id="child0-left" data-seq="start(0, 1, east) forward(9)"/><path d="M 240 16 L 384 16" class="track" data-id="child0-right" data-seq="start(15, 1, east) forward(9)"/><g transform="translate(32, 48)" class="stack-child" data-index="1" data-alternative="true"><g transform="translate(0, 16)" class="sequence-child" data-index="0"><g class="textbox-expression" data-type="nonterminal" data-text="digit1-9"><rect x="16" y="0" width="96" height="32" class="textbox nonterminal"/><text x="64" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">digit1-9</text><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 112 16 L 128 16" class="track" data-id="textbox-right" data-seq="start(7, 1, east) forward(1)"/><path d="M 112 16 L 128 16" class="track" data-id="textbox-right" data-seq="start(7, 1, east) forward(1)"/></g></g><path d="M 128 32 L 160 32" class="track" data-id="seq-0" data-seq="start(8, 2, east) forward(2)"/><g transform="translate(160, 0)" class="sequence-child" data-index="1"><g transform="translate(32, 16)" class="loop-child"><g class="textbox-expression" data-type="nonterminal" data-text="digit"><rect x="16" y="0" width="64" height="32" class="textbox nonterminal"/><text x="48" y="16" text-anchor="middle" dominant-baseline="middle" class="textbox-text nonterminal">digit</text><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 0 16 L 16 16" class="track" data-id="textbox-left" data-seq="start(0, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/><path d="M 80 16 L 96 16" class="track" data-id="textbox-right" data-seq="start(5, 1, east) forward(1)"/></g></g><path d="M 32 32 A 16 16 0 0 1 16 16 L 16 16 A 16 16 0 0 1 32 0 L 128 0 A 16 16 0 0 1 144 16 L 144 16 A 16 16 0 0 1 128 32" class="track" data-id="loop-path" data-seq="start(2, 2, west) turnRight() forward(0) turnRight() forward(6) turnRight() forward(0) turnRight()"/><path d="M 0 32 L 32 32" class="track" data-id="through-left" data-seq="start(0, 2, east) forward(2)"/><path d="M 128 32 L 160 32" class="track" data-id="through-right" data-seq="start(8, 2, east) forward(2)"/></g></g><path d="M 0 16 A 16 16 0 0 1 16 32 L 16 64 A 16 16 0 0 0 32 80 L 32 80" class="track" data-id="child1-left" data-seq="start(0, 1, east) turnRight() forward(2) turnLeft() forward(0)"/><path d="M 352 80 L 352 80 A 16 16 0 0 0 368 64 L 368 32 A 16 16 0 0 1 384 16" class="track" data-id="child1-right" data-seq="start(22, 5, east) forward(0) turnLeft() forward(2) turnRight()"/></g><circle cx="464" cy="32" class="endpoint"/><path d="M 16 32 L 48 32" class="track" data-id="start-connection" data-seq="start(1, 2, east) forward(2)"/><path d="M 16 32 L 48 32" class="track" data-id="start-connection" data-seq="start(1, 2, east) forward(2)"/><path d="M 432 32 L 464 32" class="track" data-id="end-connection" data-seq="start(27, 2, east) forward(2)"/><path d="M 432 32 L 464 32" class="track" data-id="end-connection" data-seq="start(27, 2, east) forward(2)"/>
 </svg>
