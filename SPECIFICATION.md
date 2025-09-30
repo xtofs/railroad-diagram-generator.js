@@ -1,6 +1,6 @@
 # Railroad Diagram Layout Specification
 
-This document specifies the precise layout and rail routing algorithms for railroad syntax diagrams,
+This document specifies the precise layout and track routing algorithms for railroad syntax diagrams,
 using relative grid coordinates and turtle graphics commands.
 
 ## Coordinate System & Units
@@ -22,15 +22,15 @@ width = roundUpToEven(calculatedWidth)
 
 ### Baseline Invariant
 
-Every element has a **baseline** - the Y-coordinate where the main rail line passes through.
+Every element has a **baseline** - the Y-coordinate where the main track passes through.
 
 - Enables proper alignment when elements are combined
 - Sequences align all children to the same baseline
 - Stacks use the first child's baseline as the main baseline
 
-### Rail Continuity Invariant
+### Track Continuity Invariant
 
-Rails entering and exiting elements must connect seamlessly:
+Tracks entering and exiting elements must connect seamlessly:
 
 - Entry point: `(0, baseline)`
 - Exit point: `(width, baseline)`
@@ -46,33 +46,33 @@ Rails entering and exiting elements must connect seamlessly:
 
 ```javascript
 textWidth = measureText(content, gridSize, className)
-width = roundUpToEven(textWidth + 3)  // +2 for rails, +1 for padding
+width = roundUpToEven(textWidth + 3)  // +2 for tracks, +1 for padding
 height = 2
 baseline = 1
 ```
 
-**Rail Routing**:
+**Track Routing**:
 
-```
-Entry Rail:  start(0, 1, EAST) → forward(1)
-Exit Rail:   start(width-1, 1, EAST) → forward(1)
+```plain
+Entry Track:  start(0, 1, EAST) → forward(1)
+Exit Track:   start(width-1, 1, EAST) → forward(1)
 ```
 
 **SVG Elements**:
 
 - Rectangle: `(gridSize, 0)` to `((width-2)*gridSize, height*gridSize)`
 - Text: centered in rectangle
-- Two rail segments: left and right
+- Two track segments: left and right
 
 **Invariants Maintained**:
 
 - Width is even (Grid Alignment)
-- Baseline at Y=1 (Rail Continuity)
-- Rails connect at standard entry/exit points
+- Baseline at Y=1 (Track Continuity)
+- Tracks connect at standard entry/exit points
 
 ### 2. Sequence Element
 
-**Purpose**: Horizontal arrangement of elements connected by rails
+**Purpose**: Horizontal arrangement of elements connected by tracks
 
 **Layout Calculation**:
 
@@ -89,10 +89,10 @@ currentX = 0
 for each child:
     childY = baseline - child.baseline  // Align baselines
     renderChild(child, currentX, childY)
-    currentX += child.width + 2  // +2 for connecting rail
+    currentX += child.width + 2  // +2 for connecting track
 ```
 
-**Rail Routing** (between children):
+**Track Routing** (between children):
 
 ```
 start(currentX + child.width, baseline, EAST) → forward(2)
@@ -128,7 +128,7 @@ for each child:
     currentY += child.height + 1  // +1 unit vertical spacing
 ```
 
-**Rail Routing**:
+**Track Routing**:
 
 *First Child (straight path)*:
 
@@ -159,7 +159,7 @@ Right Branch:
 
 - All children centered horizontally within maxChildWidth
 - First child provides main baseline
-- 2-unit margins on sides for rail routing
+- 2-unit margins on sides for track routing
 - Vertical spacing of 1 unit between children
 
 ### 4. Bypass Element (Optional)
@@ -181,7 +181,7 @@ childX = (width - child.width) / 2  // Center horizontally
 renderChild(child, childX, 1)  // Place 1 unit down
 ```
 
-**Rail Routing**:
+**Track Routing**:
 
 *Bypass Path (above)*:
 
@@ -237,7 +237,7 @@ childX = (width - child.width) / 2  // Center horizontally
 renderChild(child, childX, 1)  // Place 1 unit down
 ```
 
-**Rail Routing**:
+**Track Routing**:
 
 *Loop Path (below)*:
 
@@ -293,7 +293,7 @@ _toPixels(coord) {
 
 ### Arc Transitions
 
-Quarter-circle arcs connect perpendicular rail segments.
+Quarter-circle arcs connect perpendicular track segments.
 
 One of the challenges (and difference to turtle graphics) is that turns are not made on the spot
 but create quarter circles that move one unit in both the old and new direction each.
@@ -322,7 +322,7 @@ north   | east  | (-1, -1) | 1     | a 16 16 0 0 1 -16 -16
 Elements compose naturally due to consistent entry/exit points:
 
 - All elements expose `(0, baseline)` entry and `(width, baseline)` exit
-- Parent elements position children and connect with rails
+- Parent elements position children and connect with tracks
 - Coordinate systems remain relative until final rendering
 
 This specification ensures consistent, predictable layout while maintaining the flexibility to compose complex railroad diagrams from simple building blocks.

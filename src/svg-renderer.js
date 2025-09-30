@@ -2,163 +2,16 @@
  * SVG Diagram Renderer
  * 
  * Standalone implementation of railroad diagram rendering to SVG
- * Updated for hot reload testing
  */
 
-const { RailPathBuilder, Direction } = require('./rail-path-builder');
-const { createCanvas } = require('canvas');
-
-/**
- * Measure text dimensions using Canvas API for accurate sizing
- * @param {string} text - Text to measure
- * @param {number} fontSize - Font size in pixels
- * @param                 ctx.trackBuilder
-                    .start(xOffset + child.width, this.baseline, Direction.EAST)
-                    .forward(this.width - (xOffset + child.width)) // go to stack boundary
-                    .finish(`child${i}-right`);ing} fontFamily - Font family name
- * @returns {{width: number, height: number}} Text dimensions in pixels
- */
-function measureText(text, fontSize = 14, fontFamily = 'monospace') {
-    const canvas = createCanvas(1, 1); // Minimal canvas for measurement
-    const ctx = canvas.getContext('2d');
-    ctx.font = `${fontSize}px ${fontFamily}`;
-    const metrics = ctx.measureText(text);
-    
-    return {
-        width: metrics.width,
-        height: fontSize * 1.2 // Standard line height approximation
-    };
-}
-
-/**
- * RenderContext provides methods for adding SVG elements using grid units
- * Encapsulates all coordinate conversion and SVG generation
- */
-class RenderContext {
-    /**
-     * Create a render context
-     * @param {number} gridSize - Grid size in pixels
-     */
-    constructor(gridSize) {
-        /** @type {string} Accumulated SVG markup */
-        this.svg = '';
-        /** @type {number} Grid size in pixels */
-        this.gridSize = gridSize;
-        /** @type {RailPathBuilder} Track builder using grid units */
-        this.trackBuilder = new RailPathBuilder(gridSize);
-        
-        // Give trackBuilder a reference to this context so it can add paths directly
-        this.trackBuilder._renderContext = this;
-    }
-
-    /**
-     * Add a text box at the specified grid coordinates
-     * @param {number} x - X position in grid units
-     * @param {number} y - Y position in grid units
-     * @param {number} width - Width in grid units
-     * @param {number} height - Height in grid units
-     * @param {string} text - Text content
-     * @param {'terminal'|'nonterminal'} boxType - Box type
-     * @param {number} baseline - Baseline position in grid units for track connections
-     */
-    addTextBox(x, y, width, height, text, boxType, baseline) {
-        const h = height * this.gridSize;
-        
-        // Text box should exclude rail connection areas (1 unit on each side)
-        const boxWidth = (width - 2) * this.gridSize;
-        const boxX = 1 * this.gridSize; // Start 1 grid unit from left edge
-        
-        this.svg += `<g class="textbox-expression" data-type="${boxType}" data-text="${this.escapeXml(text)}">`;
-        
-        // Draw box with correct width, positioned to leave space for rails
-        this.svg += `<rect x="${boxX}" y="0" width="${boxWidth}" height="${h}" class="textbox ${boxType}"/>`;
-        
-        // Draw text centered in the actual text box area (not the full element width)
-        const textX = boxX + boxWidth / 2;
-        const textY = h / 2;
-        this.svg += `<text x="${textX}" y="${textY}" text-anchor="middle" dominant-baseline="middle" class="textbox-text ${boxType}">${this.escapeXml(text)}</text>`;
-        
-        // Add connecting tracks per specification
-        const leftTrack = this.trackBuilder
-            .start(0, baseline, Direction.EAST)
-            .forward(1)
-            .finish('textbox-left');
-        this.svg += leftTrack;
-        
-        const rightTrack = this.trackBuilder
-            .start(width - 1, baseline, Direction.EAST)
-            .forward(1)
-            .finish('textbox-right');
-        this.svg += rightTrack;
-        
-        this.svg += '</g>';
-    }
-
-    /**
-     * Add a start/end endpoint circle at the specified grid coordinates
-     * @param {number} gridX - X position in grid units
-     * @param {number} gridY - Y position in grid units
-     */
-    addEndpoint(gridX, gridY) {
-        const x = gridX * this.gridSize;
-        const y = gridY * this.gridSize;
-        this.svg += `<circle cx="${x}" cy="${y}" class="endpoint"/>`;
-    }
-
-    /**
-     * Render a child expression at specific grid coordinates with automatic group wrapping
-     * @param {Expression} child - Child expression to render
-     * @param {number} gridX - X position in grid units
-     * @param {number} gridY - Y position in grid units
-     * @param {string} [groupClass] - Optional CSS class for the group
-     * @param {Object} [groupData] - Optional data attributes for the group
-     */
-    renderChild(child, gridX, gridY, groupClass = null, groupData = {}) {
-        // Start SVG group with transform to position the child
-        const transform = `translate(${gridX * this.gridSize}, ${gridY * this.gridSize})`;
-        let groupTag = `<g transform="${transform}"`;
-        
-        if (groupClass) {
-            groupTag += ` class="${groupClass}"`;
-        }
-        
-        // Add data attributes
-        for (const [key, value] of Object.entries(groupData)) {
-            groupTag += ` data-${key}="${value}"`;
-        }
-        
-        groupTag += '>';
-        this.svg += groupTag;
-        
-        // Render child directly in this context's coordinate system
-        // The SVG transform handles positioning, so child renders at (0,0) relative to group
-        child.render(this);
-        
-        // Close the group
-        this.svg += '</g>';
-    }
-
-    /**
-     * Escape XML special characters
-     * @param {string|number} str - Input string or number
-     * @returns {string} XML-escaped string
-     */
-    escapeXml(str) {
-        if (typeof str !== 'string') {
-            str = String(str);
-        }
-        return str.replace(/[&<>"']/g, (char) => {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            };
-            return map[char];
-        });
-    }
-}
+const RenderContext = require('./render-context');
+const { Direction } = require('./track-builder');
+const TerminalExpression = require('./terminal-expression');
+const NonterminalExpression = require('./nonterminal-expression');
+const SequenceExpression = require('./sequence-expression');
+const StackExpression = require('./stack-expression');
+const BypassExpression = require('./bypass-expression');
+const LoopExpression = require('./loop-expression');
 
 /**
  * @typedef {Object} RenderConfig
@@ -179,541 +32,180 @@ class RenderContext {
  */
 
 /**
- * Abstract base class for all diagram expressions
- * Layout is calculated in constructors since it's strictly bottom-up
- * 
- * CRITICAL INVARIANT: All Expression heights must be even numbers
- * - Ensures proper baseline alignment in railroad diagrams
- * - Allows predictable track routing with centered baselines
- * - Each subclass constructor must maintain this invariant
- * 
- * @abstract
- */
-class Expression {
-    /**
-     * @constructor
-     */
-    constructor() {
-        /** @type {number} Width in grid units */
-        this.width = 0;
-        /** @type {number} Height in grid units */
-        this.height = 0;
-        /** @type {number} Baseline position in grid units */
-        this.baseline = 0;
-    }
-
-    /**
-     * Render the expression to SVG - must be implemented by subclasses
-     * @abstract
-     * @param {RenderContext} ctx - Rendering context with methods for adding SVG elements
-     * @returns {void}
-     */
-    render(ctx) {
-        throw new Error('render must be implemented by subclasses');
-    }
-}
-
-/**
- * Base class for text box expressions (terminals and nonterminals)
- * @extends Expression
- * @abstract
- */
-class TextBoxExpression extends Expression {
-    /**
-     * Create a text box expression
-     * @param {string} text - Text to display in the box
-     * @param {'terminal'|'nonterminal'} boxType - Type of text box
-     * @param {number} [fontSize=14] - Font size in pixels
-     * @param {string} [fontFamily='monospace'] - Font family
-     * @param {number} [gridSize=16] - Grid size in pixels
-     * @param {boolean} [quoted=false] - Whether terminal was originally quoted (terminals only)
-     */
-    constructor(text, boxType, fontSize = 14, fontFamily = 'monospace', gridSize = 16, quoted = false) {
-        super();
-        /** @type {string} */
-        this.text = text;
-        /** @type {'terminal'|'nonterminal'} */
-        this.boxType = boxType;
-        /** @type {boolean} */
-        this.quoted = quoted;
-        
-        // For display: add quotes around quoted terminals
-        /** @type {string} */
-        this.displayText = (boxType === 'terminal' && quoted) ? `"${text}"` : text;
-
-        // Measure actual text dimensions using canvas (use display text for proper sizing)
-        const textMetrics = measureText(this.displayText, fontSize, fontFamily);
-        
-        // Convert text width to grid units with padding
-        const textWidthInGrids = Math.ceil(textMetrics.width / gridSize);
-        const minWidth = textWidthInGrids + 2; // Add padding (1 grid unit each side)
-        
-        this.width = Math.max(4, minWidth + (minWidth % 2)); // Round up to nearest even number, minimum 4
-        this.height = 2; // Fixed height of 2 grid units for proper rail connection
-        this.baseline = 1; // Baseline at center (1 grid unit from top/bottom)
-        
-        // Assert the width invariant: all Expression widths must be even
-        console.assert(this.width % 2 === 0, `TextBoxExpression violates width invariant: expected even width, got ${this.width}`);
-    }
-
-    /**
-     * Render the text box to SVG using RenderContext
-     * @param {RenderContext} ctx - Rendering context
-     * @returns {void}
-     */
-    render(ctx) {
-        // Use RenderContext to add text box at (0,0) in grid coordinates
-        ctx.addTextBox(0, 0, this.width, this.height, this.displayText, this.boxType, this.baseline);
-    }
-}
-
-/**
- * Terminal expression (quoted literals, hex values, etc.)
- * @extends TextBoxExpression
- */
-class TerminalExpression extends TextBoxExpression {
-    /**
-     * Create a terminal expression
-     * @param {string} text - Text to display in the box
-     * @param {number} [fontSize=14] - Font size in pixels
-     * @param {string} [fontFamily='monospace'] - Font family
-     * @param {number} [gridSize=16] - Grid size in pixels
-     * @param {boolean} [quoted=false] - Whether terminal was originally quoted
-     */
-    constructor(text, fontSize = 14, fontFamily = 'monospace', gridSize = 16, quoted = false) {
-        super(text, 'terminal', fontSize, fontFamily, gridSize, quoted);
-    }
-}
-
-/**
- * Nonterminal expression (rule references)
- * @extends TextBoxExpression
- */
-class NonterminalExpression extends TextBoxExpression {
-    /**
-     * Create a nonterminal expression
-     * @param {string} text - Text to display in the box
-     * @param {number} [fontSize=14] - Font size in pixels
-     * @param {string} [fontFamily='monospace'] - Font family
-     * @param {number} [gridSize=16] - Grid size in pixels
-     */
-    constructor(text, fontSize = 14, fontFamily = 'monospace', gridSize = 16) {
-        super(text, 'nonterminal', fontSize, fontFamily, gridSize);
-    }
-}
-
-/**
- * Sequence expression (elements in sequence)
- * @extends Expression
- */
-class SequenceExpression extends Expression {
-    /**
-     * Create a sequence expression
-     * @param {Expression[]} elements - Array of child expressions to render in sequence
-     */
-    constructor(elements) {
-        super();
-        /** @type {Expression[]} */
-        this.children = elements;
-
-        // Calculate layout dimensions by summing child widths and adding spacing
-        this.width = this.children.reduce((sum, child) => sum + child.width, 0) + (this.children.length - 1) * 2;
-        this.height = Math.max(...this.children.map(child => child.height));
-        this.baseline = Math.max(...this.children.map(child => child.baseline));
-       
-        // Assert the width invariant: all Expression width must be even
-        // This is a design invariant, not a runtime error - indicates a bug in Expression subclass constructors
-        console.assert(this.width % 2 === 0, `SequenceExpression violates width invariant: expected even width, got ${this.width}`);
-    }
-
-    /**
-     * Render all child elements in horizontal sequence
-     * @param {RenderContext} ctx - Rendering context
-     * @returns {void}
-     */
-    render(ctx) {
-        // Render each child at its calculated position
-        let currentX = 0;
-        this.children.forEach((child, i) => {
-            const childY = this.baseline - child.baseline; // Align baselines
-            
-            // Render child using RenderContext
-            ctx.renderChild(child, currentX, childY, 'sequence-child', { index: i });
-            
-            // Add horizontal rail connection to next child (except for the last child)
-            if (i < this.children.length - 1) {
-                const railStartX = currentX + child.width;
-                const railY = this.baseline;
-                
-                ctx.trackBuilder
-                    .start(railStartX, railY, Direction.EAST)
-                    .forward(2) // 2 unit space
-                    .finish(`seq-${i}`);
-            }
-            
-            currentX += child.width + 2; // Add 2 for the unit space
-        });
-    }
-}
-
-/**
- * Stack expression (used for alternatives)
- * @extends Expression
- */
-class StackExpression extends Expression {
-    /**
-     * Create a stack expression for alternative paths
-     * @param {Expression[]} elements - Array of alternative expressions
-     */
-    constructor(elements) {
-        super();
-        /** @type {Expression[]} */
-        this.children = elements;
-
-        // Calculate layout dimensions by stacking alternatives vertically
-        // Children are already constructed with their layouts calculated
-        const maxWidth = Math.max(...this.children.map(child => child.width));
-        
-        // Stack grows downward from first child baseline with 1-unit gaps
-        let totalHeight = this.children[0].height; // Start with first child
-        for (let i = 1; i < this.children.length; i++) {
-            totalHeight += 1; // 1-unit gap
-            totalHeight += this.children[i].height;
-        }
-
-        this.width = 2 + maxWidth + 2; // 2 units left rail space + max child width + 2 units right rail space
-        this.height = totalHeight + (totalHeight % 2); // Add 1 if odd to make it even
-        this.baseline = this.children[0].baseline; // Use first child's baseline
-        
-        // Assert the width invariant: all Expression widths must be even
-        console.assert(this.width % 2 === 0, `StackExpression violates width invariant: expected even width, got ${this.width}`);
-    }
-
-    render(ctx) {
-        // First child is positioned at baseline (y=0 relative to stack)
-        // Other children grow downward with 1-unit gaps
-        let currentY = 0;
-        const maxWidth = Math.max(...this.children.map(child => child.width));
-        
-        this.children.forEach((child, i) => {
-            // Each child centered within the stack's content area
-            const childXOffset = 2 + (maxWidth - child.width) / 2; // 2 units left rail space + centering offset
-            const childBaseline = currentY + child.baseline;
-            
-            // Render child using RenderContext
-            ctx.renderChild(child, childXOffset, currentY, 'stack-child', { index: i, alternative: true });
-            
-            // Add tracks for routing
-            if (i === 0) {
-                // First child: straight through on main baseline
-                ctx.trackBuilder
-                    .start(0, this.baseline, Direction.EAST)
-                    .forward(childXOffset) // go directly to child start position
-                    .finish(`child${i}-left`);
-                
-                ctx.trackBuilder
-                    .start(childXOffset + child.width, this.baseline, Direction.EAST)
-                    .forward(childXOffset) // go to right rail boundary
-                    .finish(`child${i}-right`);
-            } else {
-                // Other children: handle width centering and vertical routing
-                const dy = childBaseline - this.baseline; // vertical distance
-                
-                // Left side: route from stack baseline to child endpoint
-                // immediate turn down at x=0, then route east to child
-                ctx.trackBuilder
-                    .start(0, this.baseline, Direction.EAST)
-                    .turnRight() // immediately turn south at x=0
-                    .forward(dy - 2) // -2 for the quarter circles
-                    .turnLeft() // turn east toward child (SOUTH → EAST is counterclockwise)
-                    .forward(childXOffset - 2) // the two turns already provide 2 units horizontal displacement
-                    .finish(`child${i}-left`);
-                
-                // Right side: route from child exit back to stack baseline
-                // immediate turn up at x=0 fromn east to north 
-                ctx.trackBuilder
-                    .start(childXOffset + child.width, childBaseline, Direction.EAST)
-                    .forward(childXOffset - 2) // the two turns already provide 2 units horizontal displacement
-                    .turnLeft()
-                    .forward(dy - 2)
-                    .turnRight()                    
-                    .finish(`child${i}-right`);
-            }
-            
-            // Move to next child position (current child height + 1 unit gap)
-            if (i < this.children.length - 1) {
-                currentY += child.height + 1;
-            }
-        });
-    }
-}
-
-/**
- * Bypass expression (optional element)
- * @extends Expression
- */
-class BypassExpression extends Expression {
-    /**
-     * Create a bypass expression for optional elements
-     * @param {Expression} element - The element that can be bypassed
-     */
-    constructor(element) {
-        super();
-        /** @type {Expression} */
-        this.child = element;
-
-        // Calculate layout dimensions with extra width for bypass routing
-        this.width = this.child.width + 4; // Add 4 for routing space
-        this.height = this.child.height + 1; // Extra height for bypass track
-        this.baseline = this.child.baseline + 1;
-        
-        // Assert the width invariant: all Expression widths must be even
-        console.assert(this.width % 2 === 0, `BypassExpression violates width invariant: expected even width, got ${this.width}`);
-    }
-
-    /**
-     * Render the element with a bypass track for optional path
-     * @param {RenderContext} ctx - Rendering context
-     * @param {RenderConfig} config - Grid and style configuration
-     * @returns {void}
-     */
-    render(ctx) {
-        const childX = (this.width - this.child.width) / 2;
-        const childY = 1; // Child is 1 unit down from top
-        
-        // Render child using RenderContext
-        ctx.renderChild(this.child, childX, childY, 'bypass-child');
-        
-        // Draw the bypass path (above the child) per specification
-        ctx.trackBuilder
-            .start(0, this.baseline, Direction.EAST)
-            .turnLeft()
-            .forward(this.baseline - 2)
-            .turnRight()
-            .forward(this.width - 4)
-            .turnRight()
-            .forward(this.baseline - 2)
-            .turnLeft()
-            .finish('bypass-path');
-        
-        // Through path connects entry to child and child to exit
-        ctx.trackBuilder
-            .start(0, this.baseline, Direction.EAST)
-            .forward(childX)
-            .finish('through-left');
-        
-        ctx.trackBuilder
-            .start(childX + this.child.width, this.baseline, Direction.EAST)
-            .forward(this.width - (childX + this.child.width))
-            .finish('through-right');
-    }
-}
-
-/**
- * Loop expression (repetition)
- * @extends Expression
- */
-class LoopExpression extends Expression {
-    /**
-     * Create a loop expression for repeating elements
-     * @param {Expression} element - The element to repeat
-     */
-    constructor(element) {
-        super();
-        /** @type {Expression} */
-        this.child = element;
-
-        // Calculate layout dimensions with extra width for loop routing
-        this.width = this.child.width + 4; // Add 4 for routing space
-        this.height = this.child.height + 1; // Extra height for loop back track
-        this.baseline = this.child.baseline + 1;
-        
-        // Assert the width invariant: all Expression widths must be even
-        console.assert(this.width % 2 === 0, `LoopExpression violates width invariant: expected even width, got ${this.width}`);
-    }
-
-    /**
-     * Render the element with a loop-back track for repetition
-     * @param {RenderContext} ctx - Rendering context
-     * @param {RenderConfig} config - Grid and style configuration
-     * @returns {void}
-     */
-    render(ctx) {
-        const childX = (this.width - this.child.width) / 2;
-        const childY = 1; // Child is 1 unit down from top
-
-        // Render child using RenderContext
-        ctx.renderChild(this.child, childX, childY, 'loop-child');
-        
-        // Draw the loop path (going backwards initially)
-        ctx.trackBuilder
-            .start(2, this.baseline, Direction.WEST)
-            .turnRight()
-            .forward(this.baseline - 2)
-            .turnRight()
-            .forward(this.width - 4)
-            .turnRight()
-            .forward(this.baseline - 2)
-            .turnRight()
-            .finish('loop-path');
-        
-        // Through path connects entry to child and child to exit
-        ctx.trackBuilder
-            .start(0, this.baseline, Direction.EAST)
-            .forward(childX)
-            .finish('through-left');
-        
-        ctx.trackBuilder
-            .start(childX + this.child.width, this.baseline, Direction.EAST)
-            .forward(this.width - (childX + this.child.width))
-            .finish('through-right');
-    }
-}
-
-/**
- * SVG renderer for railroad diagrams
- * Handles the conversion of parsed railroad expressions to SVG markup
+ * SVGRenderer transforms abstract diagram definitions into SVG railroad diagrams
+ * Provides the main public API for rendering railroad diagrams
  */
 class SVGRenderer {
     /**
-     * Create an SVG renderer with default configuration
+     * Create an SVG renderer with optional configuration
+     * @param {Partial<RenderConfig>} [config] - Rendering configuration
      */
-    constructor() {
-        /** @type {number} Grid size in pixels */
-        this.gridSize = 16;
-        /** @type {number} Font size in pixels */
-        this.fontSize = 14;
-        /** @type {string} Font family for text measurement and rendering */
-        this.fontFamily = 'monospace';
-        /** @type {number} Track width in pixels */
-        this.trackWidth = 6;
-        /** @type {number} Text border width in pixels */
-        this.textBorder = 3;
-
+    constructor(config = {}) {
+        /** @type {RenderConfig} Default configuration */
+        this.config = {
+            gridSize: 16,
+            fontSize: 14,
+            trackWidth: 2,
+            textBorder: 1,
+            endpointRadius: 8,
+            textBoxRadius: 6,
+            ...config
+        };
     }
 
     /**
-     * Create an expression instance from a diagram definition
-     * @param {DiagramElement} element - Diagram element definition
-     * @returns {Expression} Expression instance
-     * @throws {Error} If element type is unknown
+     * Transform a diagram definition into an Expression tree
+     * @param {DiagramElement} element - Abstract diagram element
+     * @returns {Expression} Expression tree ready for rendering
      */
-    createExpression(element) {
-        if (!element) {
-            console.error('DEBUG: createExpression called with undefined element');
-            console.trace('Stack trace:');
-            throw new Error('Element is undefined in createExpression');
-        }
-        if (!element.type) {
-            console.error('DEBUG: createExpression called with element missing type property:', element);
-            console.trace('Stack trace:');
-            throw new Error('Element.type is undefined in createExpression');
-        }
-        
+    buildExpression(element) {
         switch (element.type) {
             case 'terminal':
-                return new TerminalExpression(element.text, this.fontSize, this.fontFamily, this.gridSize, element.quoted);
+                if (!element.text) throw new Error('Terminal element missing text');
+                return new TerminalExpression(
+                    element.text,
+                    this.config.fontSize,
+                    'monospace',
+                    this.config.gridSize,
+                    element.quoted || false
+                );
+
             case 'nonterminal':
-                return new NonterminalExpression(element.text, this.fontSize, this.fontFamily, this.gridSize);
+                if (!element.text) throw new Error('Nonterminal element missing text');
+                return new NonterminalExpression(
+                    element.text,
+                    this.config.fontSize,
+                    'monospace',
+                    this.config.gridSize
+                );
+
             case 'sequence':
-                return new SequenceExpression(element.elements.map(el => this.createExpression(el)));
+                if (!element.elements || element.elements.length === 0) {
+                    throw new Error('Sequence element missing elements array');
+                }
+                const sequenceChildren = element.elements.map(child => this.buildExpression(child));
+                return new SequenceExpression(sequenceChildren);
+
             case 'stack':
-                return new StackExpression(element.elements.map(el => this.createExpression(el)));
+                if (!element.elements || element.elements.length === 0) {
+                    throw new Error('Stack element missing elements array');
+                }
+                const stackChildren = element.elements.map(child => this.buildExpression(child));
+                return new StackExpression(stackChildren);
+
             case 'bypass':
-                return new BypassExpression(this.createExpression(element.element));
+                if (!element.element) throw new Error('Bypass element missing child element');
+                const bypassChild = this.buildExpression(element.element);
+                return new BypassExpression(bypassChild);
+
             case 'loop':
-                return new LoopExpression(this.createExpression(element.element));
+                if (!element.element) throw new Error('Loop element missing child element');
+                const loopChild = this.buildExpression(element.element);
+                return new LoopExpression(loopChild);
+
             default:
                 throw new Error(`Unknown element type: ${element.type}`);
         }
     }
 
     /**
-     * Render a railroad diagram to SVG
-     * @param {DiagramElement} diagramElement - DiagramElement object defining the railroad diagram
-     * @param {string} [ruleName='unknown'] - Name of the rule for error reporting
-     * @returns {string} SVG markup or error message
+     * Render a diagram definition to SVG
+     * @param {DiagramElement} diagramElement - Abstract diagram definition
+     * @returns {string} Complete SVG diagram
      */
-    renderSVG(diagramElement, ruleName = 'unknown') {
-        try {
-            // Create expression tree directly from the diagram element
-            const expression = this.createExpression(diagramElement);
-
-            // Generate SVG
-            return this.generateSVG(expression, ruleName);
-        } catch (error) {
-            console.error(`Error rendering SVG for rule ${ruleName}:`, error);
-            return `<p>Error rendering diagram for rule: ${ruleName} (${error.message})</p>`;
-        }
-    }
-
-    /**
-     * Generate complete SVG markup from expression tree
-     * @param {Expression} expression - Root expression to render
-     * @param {string} ruleName - Name of the rule for debugging
-     * @returns {string} Complete SVG markup
-     */
-    generateSVG(expression, ruleName) {
-        const width = (expression.width + 6) * this.gridSize + 1; // 1 + 2 + expression + 2 + 1 = 6 padding + 1 pixel for pattern lines
-        const height = (expression.height + 2) * this.gridSize + 1; // Add padding + 1 pixel for pattern lines
-
-        let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
-
-        // Create new RenderContext instance
-        const ctx = new RenderContext(this.gridSize);
-
+    render(diagramElement) {
+        // Build expression tree from diagram definition
+        const expression = this.buildExpression(diagramElement);
+        
+        // Create render context
+        const ctx = new RenderContext(this.config.gridSize);
+        
         // Add start endpoint at grid coordinates
         const startX = 1; // 1 grid unit from left edge
         const startY = 1 + expression.baseline; // At baseline position
         ctx.addEndpoint(startX, startY);
 
-        // Render main expression at grid coordinates - positioned after start rail (2 units)
-        const expressionX = startX + 2; // Start endpoint + 2 units for rail
-        ctx.renderChild(expression, expressionX, 1, 'main-expression', { rule: ruleName });
+        // Render main expression at grid coordinates - positioned after start track (2 units)
+        const expressionX = startX + 2; // Start endpoint + 2 units for track
+        ctx.renderChild(expression, expressionX, 1, 'main-expression');
 
-        // Add end endpoint at grid coordinates - positioned after expression + end rail (2 units)
-        const endX = expressionX + expression.width + 2; // After expression + 2 units for rail
+        // Add end endpoint at grid coordinates - positioned after expression + end track (2 units)
+        const endX = expressionX + expression.width + 2; // After expression + 2 units for track
         const endY = 1 + expression.baseline; // At baseline position
         ctx.addEndpoint(endX, endY);
 
         // Add connecting tracks between endpoints and expression
-        ctx.trackBuilder
+        const startTrack = ctx.trackBuilder
             .start(startX, startY, Direction.EAST) // Start from center of start endpoint
             .forward(2) // Go 2 units east to expression
             .finish('start-connection');
+        ctx.svg += startTrack;
         
-        ctx.trackBuilder
-            .start(endX, endY, Direction.WEST) // Start from center of end endpoint
-            .forward(2) // Go 2 units west from expression
+        const endTrack = ctx.trackBuilder
+            .start(endX - 2, endY, Direction.EAST) // Start 2 units before end endpoint
+            .forward(2) // Go 2 units east to end endpoint
             .finish('end-connection');
-
-        svg += ctx.svg;
-        svg += '</svg>';
-
-        return svg;
+        ctx.svg += endTrack;
+        
+        // Calculate total SVG dimensions
+        const totalWidth = (endX + 1) * this.config.gridSize + 1; // Include padding + 1 pixel for pattern lines
+        const totalHeight = (expression.height + 2) * this.config.gridSize + 1; // Add padding + 1 pixel for pattern lines
+        
+        // Generate complete SVG with proper structure
+        return `<svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">
+${ctx.svg}
+</svg>`;
     }
 
     /**
-     * Escape XML special characters for safe SVG output
-     * @param {string|number} str - Input string or number to escape
-     * @returns {string} XML-escaped string
+     * Convenience method to render a simple terminal
+     * @param {string} text - Terminal text
+     * @param {boolean} [quoted=false] - Whether terminal should show quotes
+     * @returns {string} SVG diagram
      */
-    escapeXml(str) {
-        if (typeof str !== 'string') {
-            str = String(str);
-        }
-        return str.replace(/[&<>"']/g, (char) => {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            };
-            return map[char];
+    renderTerminal(text, quoted = false) {
+        return this.render({
+            type: 'terminal',
+            text: text,
+            quoted: quoted
         });
     }
 
+    /**
+     * Convenience method to render a simple nonterminal
+     * @param {string} text - Nonterminal text
+     * @returns {string} SVG diagram
+     */
+    renderNonterminal(text) {
+        return this.render({
+            type: 'nonterminal',
+            text: text
+        });
+    }
+
+    /**
+     * Convenience method to render a sequence
+     * @param {DiagramElement[]} elements - Elements to sequence
+     * @returns {string} SVG diagram
+     */
+    renderSequence(elements) {
+        return this.render({
+            type: 'sequence',
+            elements: elements
+        });
+    }
+
+    /**
+     * Convenience method to render alternatives (stack)
+     * @param {DiagramElement[]} alternatives - Alternative elements
+     * @returns {string} SVG diagram
+     */
+    renderStack(alternatives) {
+        return this.render({
+            type: 'stack',
+            elements: alternatives
+        });
+    }
 }
 
-module.exports = SVGRenderer;
+module.exports = { SVGRenderer };

@@ -8,27 +8,27 @@
   --text-border: 2px;
   /* Text box corner radius factor */
   --text-box-corner-radius-factor: 0.8;
-  /* Rule terminal (endpoint) circle radius factor */
-  --rule-terminal-radius-factor: 0.7;
+  /* Rule endpoint circle radius factor */
+  --rule-endpoint-radius-factor: 0.7;
 }
 
-.rail-track {
+.track {
     fill: none; /* Prevent filling of the path */
     stroke: #000;
     stroke-width: var(--track-width);
     stroke-linecap: butt; /* End exactly at coordinates, don't extend beyond */
 }
 
-/* Terminal styling for start/end points */
-.start-terminal,
-.end-terminal {
+/* Endpoint styling for start/end points */
+.start-endpoint,
+.end-endpoint {
     fill: black;
     stroke: none;
 }
 
 /* Endpoint circle styling */
 .endpoint {
-    r: calc(var(--grid-size) * var(--rule-terminal-radius-factor));
+    r: calc(var(--grid-size) * var(--rule-endpoint-radius-factor));
     fill: black;
     stroke: none;
 }
@@ -166,8 +166,18 @@
 .bounding-box {
     stroke: limegreen !important;
     stroke-width: 0.5 !important;
-    fill: none !important;
+    fill: rgba(50, 205, 50, 0.1) !important; /* 90% transparent lime green background */
     opacity: 0.9 !important;
+}
+
+/* Make nonterminal textboxes clickable */
+.textbox.nonterminal {
+    cursor: pointer;
+}
+
+.textbox.nonterminal:hover {
+    fill: rgb(190, 190, 190);
+    stroke-width: calc(var(--text-border) * 1.5);
 }
 
 /* Footer styling */

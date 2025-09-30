@@ -98,8 +98,3 @@ This constraint system demonstrates:
 4. **Centering logic** assumes even width differences
 5. **Assertions** should validate invariants during development
 
-## Historical Context
-
-This analysis was conducted after investigating assertion failures in `SequenceExpression` height validation. The investigation revealed that height evenness was not architecturally required, but width evenness is critical for the grid positioning system.
-
-The height assertion was initially assumed to be necessary, but deeper analysis showed it was conflating aesthetic preferences with architectural requirements. The width constraint is the true architectural invariant.

@@ -143,16 +143,15 @@
             addBoundingBoxes();
         }
         
-        // Optional: Add toggle functionality
+        // Add separate toggle functionality for grid and bounding boxes
         document.addEventListener('keydown', function(e) {
+            // Toggle grid with Ctrl+G
             if (e.key === 'g' && e.ctrlKey) {
                 e.preventDefault();
-                console.log('Ctrl+G pressed - toggling debug view');
+                console.log('Ctrl+G pressed - toggling grid view');
                 
                 const gridElements = document.querySelectorAll('.grid-background');
-                const boundingBoxElements = document.querySelectorAll('.bounding-box');
-                
-                console.log(`Found ${gridElements.length} grid elements and ${boundingBoxElements.length} bounding boxes`);
+                console.log(`Found ${gridElements.length} grid elements`);
                 
                 gridElements.forEach((grid, index) => {
                     const wasVisible = grid.classList.contains('visible');
@@ -163,6 +162,15 @@
                     }
                     console.log(`Grid ${index}: ${wasVisible ? 'visible' : 'hidden'} -> ${!wasVisible ? 'visible' : 'hidden'}`);
                 });
+            }
+            
+            // Toggle bounding boxes with Ctrl+B
+            if (e.key === 'b' && e.ctrlKey) {
+                e.preventDefault();
+                console.log('Ctrl+B pressed - toggling bounding box view');
+                
+                const boundingBoxElements = document.querySelectorAll('.bounding-box');
+                console.log(`Found ${boundingBoxElements.length} bounding boxes`);
                 
                 boundingBoxElements.forEach((bbox, index) => {
                     const wasVisible = bbox.classList.contains('visible');
@@ -175,6 +183,44 @@
                 });
             }
         });
+        
+        // Add click navigation for nonterminal textboxes
+        function addNonterminalNavigation() {
+            const nonterminalTextElements = document.querySelectorAll('.textbox-text.nonterminal');
+            
+            nonterminalTextElements.forEach((textElement) => {
+                textElement.style.cursor = 'pointer';
+                
+                textElement.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const ruleName = textElement.textContent.trim();
+                    const targetElement = document.getElementById(`syntax-rule-${ruleName}`);
+                    
+                    if (targetElement) {
+                        console.log(`Navigating to rule: ${ruleName}`);
+                        
+                        // Update the URL hash
+                        history.pushState(null, null, `#syntax-rule-${ruleName}`);
+                        
+                        targetElement.scrollIntoView({ 
+                            block: 'start' 
+                        });
+                    } else {
+                        console.log(`Rule not found: ${ruleName}`);
+                        alert(`Rule "${ruleName}" not found in this document.`);
+                    }
+                });
+            });
+        }
+        
+        // Add nonterminal navigation when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', addNonterminalNavigation);
+        } else {
+            addNonterminalNavigation();
+        }
     </script>
 </body>
 </html>

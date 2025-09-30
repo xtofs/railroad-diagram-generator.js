@@ -1,5 +1,5 @@
 /**
- * Type definitions for Rail Path Builder
+ * Type definitions for Track Builder
  */
 
 export interface BranchConfig {
@@ -71,7 +71,7 @@ export declare class Point {
 }
 
 /**
- * Direction constants for rail movement
+ * Direction constants for track movement
  */
 export declare const Direction: {
   /** North direction (up) */
@@ -85,14 +85,14 @@ export declare const Direction: {
 };
 
 /**
- * Rail path builder with fluent API
+ * Track builder with fluent API
  */
-export declare class RailPathBuilder {
+export declare class TrackBuilder {
   /** Grid size in pixels */
   gridSize: number;
 
   /**
-   * Create a new rail path builder
+   * Create a new track builder
    * @param gridSize Grid size in pixels
    */
   constructor(gridSize?: number);
@@ -162,14 +162,14 @@ export declare class RailPathBuilder {
 }
 
 /**
- * Rail routing utilities for common patterns
+ * Track routing utilities for common patterns
  */
-export declare class RailRouter {
+export declare class TrackRouter {
   /** Grid size in pixels */
   gridSize: number;
 
   /**
-   * Create a new rail router
+   * Create a new track router
    * @param gridSize Grid size in pixels
    */
   constructor(gridSize: number);
@@ -257,4 +257,4 @@ export declare class RailRouter {
   };
 }
 
-export { RailPathBuilder, RailRouter, Point, Direction };
+export { TrackBuilder, TrackRouter, Point, Direction };

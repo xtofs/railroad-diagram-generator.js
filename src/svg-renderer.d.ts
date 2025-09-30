@@ -11,8 +11,8 @@ export interface RenderContext {
   y: number;
   /** Grid size in pixels */
   gridSize: number;
-  /** Track builder instance for creating rail paths */
-  trackBuilder: any; // RailPathBuilder type would need to be imported
+  /** Track builder instance for creating railroad tracks */
+  trackBuilder: any; // TrackBuilder type would need to be imported
 }
 
 export interface RenderConfig {

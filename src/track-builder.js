@@ -1,12 +1,12 @@
 /**
- * Rail Path Builder
+ * Track Builder
  * 
- * Provides a builder API for creating complex rail routing paths
+ * Provides a builder API for creating complex track routing paths
  * with proper coordinate calculations and smooth curves.
  */
 
 /**
- * Direction constants for rail movement
+ * Direction constants for track movement
  * @readonly
  * @enum {string}
  */
@@ -65,12 +65,12 @@ class Point {
 }
 
 /**
- * Rail path builder with fluent API
+ * Track builder with fluent API
  * Private methods are prefixed with _ and should never be called by users
  */
-class RailPathBuilder {
+class TrackBuilder {
     /**
-     * Create a new rail path builder
+     * Create a new track builder
      * @param {number} [gridSize=16] - Grid size in pixels
      */
     constructor(gridSize = 16) {
@@ -93,7 +93,7 @@ class RailPathBuilder {
      * @param {number} x - X coordinate in grid units
      * @param {number} y - Y coordinate in grid units  
      * @param {string} [direction=Direction.EAST] - Initial direction
-     * @returns {RailPathBuilder} For method chaining
+     * @returns {TrackBuilder} For method chaining
      */
     start(x, y, direction = Direction.EAST) {
         if (this._isStarted) {
@@ -117,7 +117,7 @@ class RailPathBuilder {
     /**
      * Move forward by the specified number of grid units in current direction
      * @param {number} units - Number of grid units to move
-     * @returns {RailPathBuilder} For method chaining
+     * @returns {TrackBuilder} For method chaining
      */
     forward(units) {
         if (!this._isStarted) {
@@ -140,7 +140,7 @@ class RailPathBuilder {
 
     /**
      * Turn left (90 degrees counterclockwise) with smooth arc transition
-     * @returns {RailPathBuilder} For method chaining
+     * @returns {TrackBuilder} For method chaining
      */
     turnLeft() {
         if (!this._isStarted) {
@@ -157,7 +157,7 @@ class RailPathBuilder {
 
     /**
      * Turn right (90 degrees clockwise) with smooth arc transition
-     * @returns {RailPathBuilder} For method chaining
+     * @returns {TrackBuilder} For method chaining
      */
     turnRight() {
         if (!this._isStarted) {
@@ -313,10 +313,10 @@ class RailPathBuilder {
     /**
      * Finish the current path and return SVG path element
      * @param {string} [debugId] - Optional debug ID for the path element
-     * @param {string} [className='rail-track'] - CSS class for the path
+     * @param {string} [className='track'] - CSS class for the path
      * @returns {string} Complete SVG path element
      */
-    finish(debugId = null, className = 'rail-track') {
+    finish(debugId = null, className = 'track') {
         if (!this._isStarted) {
             throw new Error('No path to finish. Call start() first.');
         }
@@ -356,4 +356,4 @@ class RailPathBuilder {
     }
 }
 
-module.exports = { RailPathBuilder, Point, Direction };
+module.exports = { TrackBuilder, Point, Direction };

@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const { glob } = require('glob');
 const Handlebars = require('handlebars');
-const ABNFToRailroad = require('../src/index');
+const ABNFToRailroad = require('../src/main');
 
 const program = new Command();
 
@@ -242,7 +242,7 @@ program
                 if (changeFile && changeFile !== 'initial' && changeFile.includes('src')) {
                     console.log(`🔄 Reloading converter...`);
                     delete require.cache[require.resolve('../src/index')];
-                    const ABNFToRailroadReloaded = require('../src/index');
+                    const ABNFToRailroadReloaded = require('../src/main');
                     currentConverter = new ABNFToRailroadReloaded();
                 }
                 
