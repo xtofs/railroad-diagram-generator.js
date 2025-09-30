@@ -6,12 +6,7 @@
 
 const RenderContext = require('./render-context');
 const { Direction } = require('./track-builder');
-const TerminalExpression = require('./terminal-expression');
-const NonterminalExpression = require('./nonterminal-expression');
-const SequenceExpression = require('./sequence-expression');
-const StackExpression = require('./stack-expression');
-const BypassExpression = require('./bypass-expression');
-const LoopExpression = require('./loop-expression');
+const ASTTransformer = require('./ast-transformer');
 
 /**
  * @typedef {Object} RenderConfig
@@ -51,62 +46,11 @@ class SVGRenderer {
             textBoxRadius: 6,
             ...config
         };
+        
+        this.transformer = new ASTTransformer();
     }
 
-    /**
-     * Transform a diagram definition into an Expression tree
-     * @param {DiagramElement} element - Abstract diagram element
-     * @returns {Expression} Expression tree ready for rendering
-     */
-    buildExpression(element) {
-        switch (element.type) {
-            case 'terminal':
-                if (!element.text) throw new Error('Terminal element missing text');
-                return new TerminalExpression(
-                    element.text,
-                    this.config.fontSize,
-                    'monospace',
-                    this.config.gridSize,
-                    element.quoted || false
-                );
 
-            case 'nonterminal':
-                if (!element.text) throw new Error('Nonterminal element missing text');
-                return new NonterminalExpression(
-                    element.text,
-                    this.config.fontSize,
-                    'monospace',
-                    this.config.gridSize
-                );
-
-            case 'sequence':
-                if (!element.elements || element.elements.length === 0) {
-                    throw new Error('Sequence element missing elements array');
-                }
-                const sequenceChildren = element.elements.map(child => this.buildExpression(child));
-                return new SequenceExpression(sequenceChildren);
-
-            case 'stack':
-                if (!element.elements || element.elements.length === 0) {
-                    throw new Error('Stack element missing elements array');
-                }
-                const stackChildren = element.elements.map(child => this.buildExpression(child));
-                return new StackExpression(stackChildren);
-
-            case 'bypass':
-                if (!element.element) throw new Error('Bypass element missing child element');
-                const bypassChild = this.buildExpression(element.element);
-                return new BypassExpression(bypassChild);
-
-            case 'loop':
-                if (!element.element) throw new Error('Loop element missing child element');
-                const loopChild = this.buildExpression(element.element);
-                return new LoopExpression(loopChild);
-
-            default:
-                throw new Error(`Unknown element type: ${element.type}`);
-        }
-    }
 
     /**
      * Render a diagram definition to SVG
@@ -114,30 +58,39 @@ class SVGRenderer {
      * @returns {string} Complete SVG diagram
      */
     render(diagramElement) {
-        // Build expression tree from diagram definition
-        const expression = this.buildExpression(diagramElement);
+        // Phase 1: Build element tree from diagram definition
+        const element = this.transformer.transform(diagramElement);
         
+        // Phase 2: Calculate layout with LayoutConfig
+        const layoutConfig = {
+            fontSize: this.config.fontSize,
+            fontFamily: 'monospace',
+            gridSize: this.config.gridSize
+        };
+        element.layout(layoutConfig);
+        
+        // Phase 3: Render with RenderConfig
         // Create render context
         const ctx = new RenderContext(this.config.gridSize);
         
         // Add start endpoint at grid coordinates
         const startX = 1; // 1 grid unit from left edge
-        const startY = 1 + expression.baseline; // At baseline position
+        const startY = 1 + element.baseline; // At baseline position
         ctx.addEndpoint(startX, startY);
 
-        // Render main expression at grid coordinates - positioned after start track (2 units)
-        const expressionX = startX + 2; // Start endpoint + 2 units for track
-        ctx.renderChild(expression, expressionX, 1, 'main-expression');
+        // Render main element at grid coordinates - positioned after start track (2 units)
+        const elementX = startX + 2; // Start endpoint + 2 units for track
+        ctx.renderChild(element, elementX, 1, 'main-element');
 
-        // Add end endpoint at grid coordinates - positioned after expression + end track (2 units)
-        const endX = expressionX + expression.width + 2; // After expression + 2 units for track
-        const endY = 1 + expression.baseline; // At baseline position
+        // Add end endpoint at grid coordinates - positioned after element + end track (2 units)
+        const endX = elementX + element.width + 2; // After element + 2 units for track
+        const endY = 1 + element.baseline; // At baseline position
         ctx.addEndpoint(endX, endY);
 
-        // Add connecting tracks between endpoints and expression
+        // Add connecting tracks between endpoints and element
         const startTrack = ctx.trackBuilder
             .start(startX, startY, Direction.EAST) // Start from center of start endpoint
-            .forward(2) // Go 2 units east to expression
+            .forward(2) // Go 2 units east to element
             .finish('start-connection');
         ctx.svg += startTrack;
         
@@ -149,7 +102,7 @@ class SVGRenderer {
         
         // Calculate total SVG dimensions
         const totalWidth = (endX + 1) * this.config.gridSize + 1; // Include padding + 1 pixel for pattern lines
-        const totalHeight = (expression.height + 2) * this.config.gridSize + 1; // Add padding + 1 pixel for pattern lines
+        const totalHeight = (element.height + 2) * this.config.gridSize + 1; // Add padding + 1 pixel for pattern lines
         
         // Generate complete SVG with proper structure
         return `<svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">

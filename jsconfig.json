@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    // Explicitly set to CommonJS to prevent ES module suggestions
+    "module": "CommonJS",
+    "target": "ES2020",
+    "moduleResolution": "node",
+    
+    // JavaScript project settings - only for IntelliSense
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    
+    // Suppress TypeScript strict checking
+    "strict": false,
+    "skipLibCheck": true
+  },
+  
+  // Files to include for editor support only
+  "include": ["src/**/*", "bin/**/*", "test/**/*"],
+  "exclude": ["node_modules"]
+}

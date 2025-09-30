@@ -1,24 +1,39 @@
-const Expression = require('./expression');
+const Element = require('./expression');
 const { Direction } = require('./track-builder');
 
 /**
- * Loop expression (repetition)
- * @extends Expression
+ * Loop element (repetition)
+ * @extends Element
  */
-class LoopExpression extends Expression {
+class LoopElement extends Element {
     /**
-     * Create a loop expression for repeating elements
-     * @param {Expression} element - The element to repeat
+     * Create a loop element for repeating elements
+     * @param {Element} element - The element to repeat
      */
     constructor(element) {
         super();
-        /** @type {Expression} */
+        /** @type {Element} */
         this.child = element;
+        
+        // Layout will be calculated in layout() method
+    }
+
+    /**
+     * Calculate layout dimensions based on child
+     * @param {LayoutConfig} layoutConfig - Configuration for layout calculations
+     * @returns {void}
+     */
+    layout(layoutConfig) {
+        // First layout the child
+        if (!this.child.isLaidOut) {
+            this.child.layout(layoutConfig);
+        }
 
         // Calculate layout dimensions with extra width for loop routing
         this.width = this.child.width + 4; // Add 4 for routing space
         this.height = this.child.height + 1; // Extra height for loop back track
         this.baseline = this.child.baseline + 1;
+        this.isLaidOut = true;
         
         // Assert the width invariant: all Expression widths must be even
         console.assert(this.width % 2 === 0, `LoopExpression violates width invariant: expected even width, got ${this.width}`);
@@ -61,4 +76,4 @@ class LoopExpression extends Expression {
     }
 }
 
-module.exports = LoopExpression;
+module.exports = LoopElement;

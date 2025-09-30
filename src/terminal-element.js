@@ -1,4 +1,4 @@
-const { TextBoxElement } = require('./text-box-expression');
+const { TextBoxElement } = require('./text-box-element');
 
 /**
  * Terminal element (quoted literals, hex values, etc.)

@@ -538,6 +538,16 @@ class ABNFParser {
                     line: startToken?.line,
                     column: startToken?.column
                 };
+            } else if (min === max && min > 1) {
+                // nElement - exact count (e.g., 8HEXDIG, 4HEXDIG)
+                element = {
+                    type: 'repetition',
+                    min: min,
+                    max: max,
+                    element: element,
+                    line: startToken?.line,
+                    column: startToken?.column
+                };
             }
         }
 

@@ -15,7 +15,7 @@
     "watch:examples": "node bin/cli.js watch \"examples/*.abnf\" --index",
     "watch:calculator": "node bin/cli.js watch \"examples/calculator.abnf\"",
     "prepublishOnly": "echo \"Preparing to publish package...\"",
-    "test": "echo \"Warning: no test specified\" && exit 0"
+    "test": "node --test test/*.test.js"
   },
   "keywords": [
     "abnf",

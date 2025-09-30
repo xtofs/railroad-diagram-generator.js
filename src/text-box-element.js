@@ -1,4 +1,4 @@
-const Element = require('./expression');
+const Element = require('./element');
 const { createCanvas } = require('canvas');
 
 /**

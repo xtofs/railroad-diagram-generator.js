@@ -1,14 +1,14 @@
-const Element = require('./expression');
+const Element = require('./element');
 const { Direction } = require('./track-builder');
 
 /**
- * Bypass element (optional element)
+ * Loop element (repetition)
  * @extends Element
  */
-class BypassElement extends Element {
+class LoopElement extends Element {
     /**
-     * Create a bypass element for optional elements
-     * @param {Element} element - The element that can be bypassed
+     * Create a loop element for repeating elements
+     * @param {Element} element - The element to repeat
      */
     constructor(element) {
         super();
@@ -29,39 +29,39 @@ class BypassElement extends Element {
             this.child.layout(layoutConfig);
         }
 
-        // Calculate layout dimensions with extra width for bypass routing
+        // Calculate layout dimensions with extra width for loop routing
         this.width = this.child.width + 4; // Add 4 for routing space
-        this.height = this.child.height + 1; // Extra height for bypass track
+        this.height = this.child.height + 1; // Extra height for loop back track
         this.baseline = this.child.baseline + 1;
         this.isLaidOut = true;
         
         // Assert the width invariant: all Expression widths must be even
-        console.assert(this.width % 2 === 0, `BypassExpression violates width invariant: expected even width, got ${this.width}`);
+        console.assert(this.width % 2 === 0, `LoopExpression violates width invariant: expected even width, got ${this.width}`);
     }
 
     /**
-     * Render the element with a bypass track for optional path
+     * Render the element with a loop-back track for repetition
      * @param {RenderContext} ctx - Rendering context
      * @returns {void}
      */
     render(ctx) {
         const childX = (this.width - this.child.width) / 2;
         const childY = 1; // Child is 1 unit down from top
-        
+
         // Render child using RenderContext
-        ctx.renderChild(this.child, childX, childY, 'bypass-child');
+        ctx.renderChild(this.child, childX, childY, 'loop-child');
         
-        // Draw the bypass path (above the child) per specification
+        // Draw the loop path (going backwards initially)
         ctx.trackBuilder
-            .start(0, this.baseline, Direction.EAST)
-            .turnLeft()
+            .start(2, this.baseline, Direction.WEST)
+            .turnRight()
             .forward(this.baseline - 2)
             .turnRight()
             .forward(this.width - 4)
             .turnRight()
             .forward(this.baseline - 2)
-            .turnLeft()
-            .finish('bypass-path');
+            .turnRight()
+            .finish('loop-path');
         
         // Through path connects entry to child and child to exit
         ctx.trackBuilder
@@ -76,4 +76,4 @@ class BypassElement extends Element {
     }
 }
 
-module.exports = BypassElement;
+module.exports = LoopElement;
