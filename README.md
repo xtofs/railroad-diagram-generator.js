@@ -6,7 +6,7 @@ A command-line tool that converts ABNF (Augmented Backus-Naur Form) grammar file
 
 Here's a railroad diagram for a JSON-like grammar with optional elements and repetition:
 
-![Example Railroad Diagram](assets/example-diagram.svg)
+![Example Railroad Diagram](assets/example-diagram.svg?v=2)
 
 ## Features
 
