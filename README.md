@@ -2,6 +2,14 @@
 
 A command-line tool that converts ABNF (Augmented Backus-Naur Form) grammar files to HTML pages with embedded SVG railroad diagrams.
 
+## Example Output
+
+Here's what a railroad diagram looks like for the ABNF rule `param := param-name "=" param-value`:
+
+![Example Railroad Diagram](assets/example-diagram.svg)
+
+The diagram shows the visual flow: start → param-name → "=" → param-value → end
+
 ## Features
 
 - **Standalone SVG Generation**: Renders railroad diagrams as static SVG without browser dependencies
