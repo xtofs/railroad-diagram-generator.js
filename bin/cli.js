@@ -11,6 +11,9 @@ const { glob } = require('glob');
 const Handlebars = require('handlebars');
 const ABNFToRailroad = require('../src/main');
 
+// Load package.json for version info
+const packageJson = require('../package.json');
+
 const program = new Command();
 
 /**
@@ -68,7 +71,7 @@ async function generateIndexPage(processedFiles, outputDir) {
 program
     .name('abnf-to-railroad')
     .description('Convert ABNF grammar files to HTML with railroad diagrams')
-    .version('1.0.0');
+    .version(packageJson.version);
 
 program
     .command('generate')

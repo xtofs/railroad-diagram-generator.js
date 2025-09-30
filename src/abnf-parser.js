@@ -73,8 +73,8 @@ class ABNFTokenizer {
             // Comments (skip)
             '(?<comment>;[^\\r\\n]*)',
             // String literals with optional case sensitivity prefixes
-            '(?<string>(?:%[si])?"(?:[^"\\\\]|\\\\.)*")',
-            "(?<sstring>(?:%[si])?'(?:[^'\\\\]|\\\\.)*')",
+            '(?<string>(?:%[si])?"[^"]*")',
+            "(?<sstring>(?:%[si])?'[^']*')",
             // Hex/decimal values (including concatenation with dots)
             '(?<hexval>%x[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]+)*(?:-[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]+)*)?)',
             '(?<decval>%d[0-9]+(?:\\.[0-9]+)*(?:-[0-9]+(?:\\.[0-9]+)*)?)',
