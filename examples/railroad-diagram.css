@@ -1,7 +1,7 @@
 
-/* Railroad diagram styling for connections */
+/* Rail track styling for connections */
 :root {
-  /* Default sizing configuration */
+  /* Default sizing configuration - Medium preset */
   --grid-size: 16px;
   --font-size: 14px;
   --track-width: 6px;

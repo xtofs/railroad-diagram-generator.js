@@ -33,19 +33,13 @@ class HTMLGenerator {
     }
 
     /**
-     * Load CSS and template assets (called lazily)
+     * Load template assets (called lazily)
      * @returns {Promise<void>}
      */
     async loadAssets() {
         if (this.assetsLoaded) return;
 
-        try {
-            const cssPath = path.join(__dirname, '..', 'assets', 'diagram.css');
-            this.cssContent = await fs.readFile(cssPath, 'utf8');
-        } catch (error) {
-            console.error('Error loading CSS assets:', error);
-            this.cssContent = '/* CSS could not be loaded */';
-        }
+        // CSS is now copied directly to output directory, no need to load into memory
 
         // Compile Handlebars template
         const templatePath = path.join(__dirname, '..', 'assets', 'diagram-template.hbs');
@@ -78,7 +72,6 @@ class HTMLGenerator {
 
         return this.template({
             title: this.escapeHtml(title),
-            cssContent: this.cssContent,
             rules: rulesArray
         });
     }
@@ -101,7 +94,6 @@ class HTMLGenerator {
 
         return this.template({
             title: this.escapeHtml(title),
-            cssContent: this.cssContent,
             rules: rulesArray
         });
     }
@@ -123,14 +115,22 @@ class HTMLGenerator {
     }
 
     /**
-     * Write HTML content to file, ensuring directory exists
+     * Write HTML content to file and copy CSS file, ensuring directory exists
      * @param {string} html - Complete HTML content to write
      * @param {string} outputPath - Output file path
      * @returns {Promise<void>}
      */
     async writeHTML(html, outputPath) {
-        await fs.ensureDir(path.dirname(outputPath));
+        const outputDir = path.dirname(outputPath);
+        await fs.ensureDir(outputDir);
+        
+        // Write HTML file
         await fs.writeFile(outputPath, html, 'utf8');
+        
+        // Copy CSS file to same directory as HTML
+        const cssSourcePath = path.join(__dirname, '..', 'assets', 'diagram.css');
+        const cssOutputPath = path.join(outputDir, 'railroad-diagram.css');
+        await fs.copyFile(cssSourcePath, cssOutputPath);
     }
 }
 

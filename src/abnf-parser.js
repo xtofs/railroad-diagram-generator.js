@@ -8,12 +8,42 @@
  */
 
 /**
+ * Custom error class for ABNF parsing errors with position information
+ */
+class ABNFParseError extends Error {
+    /**
+     * Create a new ABNF parse error
+     * @param {string} message - Error message
+     * @param {number} [line] - Line number (1-based)
+     * @param {number} [column] - Column number (1-based)
+     * @param {Token} [token] - Token that caused the error
+     */
+    constructor(message, line = null, column = null, token = null) {
+        let fullMessage = message;
+        if (line !== null && column !== null) {
+            fullMessage = `${message} at line ${line}, column ${column}`;
+        }
+        if (token) {
+            fullMessage += ` (token: ${token.type} '${token.value}')`;
+        }
+        
+        super(fullMessage);
+        this.name = 'ABNFParseError';
+        this.line = line;
+        this.column = column;
+        this.token = token;
+    }
+}
+
+/**
  * @typedef {Object} ASTNode
  * @property {string} type - Node type ('terminal', 'nonterminal', 'sequence', 'stack', 'bypass', 'loop')
  * @property {string} [text] - Text content (for terminal/nonterminal nodes)
  * @property {boolean} [quoted] - Whether terminal was originally quoted in ABNF (for terminals only)
  * @property {ASTNode[]} [elements] - Child nodes (for container nodes)
  * @property {ASTNode} [element] - Single child node (for wrapper nodes)
+ * @property {number} [line] - Line number where this node starts (1-based)
+ * @property {number} [column] - Column number where this node starts (1-based)
  */
 
 /**
@@ -27,6 +57,8 @@
  * @typedef {Object} Token
  * @property {string} type - Token type (identifier, string, number, operator, etc.)
  * @property {string} value - Token value/text
+ * @property {number} line - Line number (1-based)
+ * @property {number} column - Column number (1-based)
  */
 
 /**
@@ -73,6 +105,8 @@ class ABNFTokenizer {
         const tokens = [];
         let match;
         let lastIndex = 0;
+        let line = 1;
+        let column = 1;
 
         this.tokenRegex.lastIndex = 0; // Reset regex state
 
@@ -81,9 +115,17 @@ class ABNFTokenizer {
             if (match.index !== lastIndex) {
                 const gap = input.slice(lastIndex, match.index);
                 if (gap.trim()) {
-                    throw new Error(`Unexpected character(s) at position ${lastIndex}: '${gap}'`);
+                    throw new Error(`Unexpected character(s) at line ${line}, column ${column}: '${gap}'`);
                 }
+                // Update line/column for the gap
+                const gapUpdate = this._updatePosition(gap, line, column);
+                line = gapUpdate.line;
+                column = gapUpdate.column;
             }
+
+            // Store current position for this token
+            const tokenLine = line;
+            const tokenColumn = column;
 
             // Find which named group matched
             const groups = match.groups;
@@ -97,13 +139,20 @@ class ABNFTokenizer {
                 }
             }
 
-            // Skip whitespace and comments
+            // Skip whitespace and comments, but still track position
             if (tokenType !== 'whitespace' && tokenType !== 'comment') {
                 tokens.push({
                     type: tokenType,
-                    value: tokenValue
+                    value: tokenValue,
+                    line: tokenLine,
+                    column: tokenColumn
                 });
             }
+
+            // Update position based on the matched token
+            const positionUpdate = this._updatePosition(tokenValue, line, column);
+            line = positionUpdate.line;
+            column = positionUpdate.column;
 
             lastIndex = match.index + match[0].length;
         }
@@ -112,11 +161,46 @@ class ABNFTokenizer {
         if (lastIndex < input.length) {
             const remaining = input.slice(lastIndex);
             if (remaining.trim()) {
-                throw new Error(`Unexpected character(s) at position ${lastIndex}: '${remaining}'`);
+                throw new Error(`Unexpected character(s) at line ${line}, column ${column}: '${remaining}'`);
             }
         }
 
         return tokens;
+    }
+
+    /**
+     * Update line and column position based on a string segment
+     * @param {string} text - Text segment to process
+     * @param {number} currentLine - Current line number
+     * @param {number} currentColumn - Current column number
+     * @returns {{line: number, column: number}} Updated position
+     * @private
+     */
+    _updatePosition(text, currentLine, currentColumn) {
+        let line = currentLine;
+        let column = currentColumn;
+        
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (char === '\n') {
+                line++;
+                column = 1;
+            } else if (char === '\r') {
+                // Handle \r\n and \r line endings
+                if (i + 1 < text.length && text[i + 1] === '\n') {
+                    // \r\n - skip the \r, \n will be handled next iteration
+                    continue;
+                } else {
+                    // \r alone
+                    line++;
+                    column = 1;
+                }
+            } else {
+                column++;
+            }
+        }
+        
+        return { line, column };
     }
 }
 
@@ -138,75 +222,152 @@ class ABNFParser {
      * @returns {Map<string, ParsedRule>} Parsed rules with original ABNF and AST
      */
     parse(abnfContent) {
+        // Tokenize the entire file once, preserving all context
+        const tokens = this.tokenizer.tokenize(abnfContent);
+        
+        // Parse the token stream to identify rules
+        return this._parseTokenStream(tokens, abnfContent);
+    }
+
+    /**
+     * Parse a token stream to extract rules using lookahead
+     * @param {Token[]} tokens - Array of all tokens from the file
+     * @param {string} originalContent - Original file content for error context
+     * @returns {Map<string, ParsedRule>} Parsed rules with original ABNF and AST
+     * @private
+     */
+    _parseTokenStream(tokens, originalContent) {
         const rules = new Map();
-        const lines = abnfContent.split('\n');
-        let currentRule = null;
-        let currentDefinition = '';
+        let index = 0;
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
+        while (index < tokens.length) {
+            const token = tokens[index];
             
-            // Skip empty lines and comments
-            if (!line || line.startsWith(';')) {
-                continue;
-            }
-
-            // Check if this is a rule definition (contains := or =)
-            const ruleMatch = line.match(/^([a-zA-Z][a-zA-Z0-9-]*)\s*:?=\s*(.*)$/);
-            
-            if (ruleMatch) {
-                // Save previous rule if exists
-                if (currentRule) {
-                    rules.set(currentRule, this._parseDefinition(currentRule, currentDefinition.trim()));
-                }
+            // Look for rule definitions: identifier followed by assignment
+            if (token.type === 'identifier' && 
+                index + 1 < tokens.length && 
+                tokens[index + 1].type === 'assign') {
                 
-                // Start new rule
-                currentRule = ruleMatch[1];
-                currentDefinition = ruleMatch[2];
-            } else if (currentRule) {
-                // Continuation of current rule
-                currentDefinition += ' ' + line;
+                const ruleName = token.value;
+                const ruleStartLine = token.line;
+                const ruleStartColumn = token.column;
+                
+                // Skip the identifier and assignment tokens
+                index += 2; // Skip identifier and '=' or ':='
+                
+                // Find the end of this rule (next rule definition or end of file)
+                const ruleTokens = this._extractRuleTokens(tokens, index);
+                index = ruleTokens.nextIndex;
+                
+                try {
+                    // Parse the rule expression from its tokens
+                    const expression = this._parseTokenSequence(ruleTokens.tokens);
+                    
+                    // Add debug string functionality to the parsed expression
+                    addDebugStringToElement(expression);
+                    
+                    // Reconstruct original rule text for debugging/display
+                    const originalRule = this._reconstructRuleText(originalContent, ruleStartLine, ruleTokens.tokens);
+                    
+                    rules.set(ruleName, {
+                        name: ruleName,
+                        original: originalRule,
+                        expression: expression
+                    });
+                    
+                } catch (error) {
+                    // Re-throw with rule context
+                    if (error instanceof ABNFParseError) {
+                        throw error; // Already has position info
+                    } else {
+                        throw new ABNFParseError(`Error in rule '${ruleName}': ${error.message}`, ruleStartLine, ruleStartColumn);
+                    }
+                }
+            } else {
+                // Skip non-rule tokens (comments, whitespace, etc.)
+                index++;
             }
-        }
-
-        // Don't forget the last rule
-        if (currentRule) {
-            rules.set(currentRule, this._parseDefinition(currentRule, currentDefinition.trim()));
         }
 
         return rules;
     }
 
     /**
-     * Parse a single rule definition using tokenizer and convert to AST
-     * @param {string} name - The rule name
-     * @param {string} definition - The ABNF rule definition
-     * @returns {ParsedRule} Rule object with name, original definition and AST
+     * Extract tokens belonging to a single rule definition
+     * @param {Token[]} tokens - All tokens
+     * @param {number} startIndex - Index after the assignment operator
+     * @returns {{tokens: Token[], nextIndex: number}} Rule tokens and next index
      * @private
      */
-    _parseDefinition(name, definition) {
-        const expression = this._parseTokenizedDefinition(definition);
-        // Add debug string functionality to the parsed expression
-        addDebugStringToElement(expression);
+    _extractRuleTokens(tokens, startIndex) {
+        const ruleTokens = [];
+        let index = startIndex;
         
-        const result = {
-            name: name,
-            original: definition,
-            expression: expression
-        };
-        return result;
+        while (index < tokens.length) {
+            const token = tokens[index];
+            
+            // Check if this is the start of a new rule (identifier followed by assignment)
+            if (token.type === 'identifier' && 
+                index + 1 < tokens.length && 
+                tokens[index + 1].type === 'assign') {
+                // Found next rule definition, stop here
+                break;
+            }
+            
+            ruleTokens.push(token);
+            index++;
+        }
+        
+        return { tokens: ruleTokens, nextIndex: index };
     }
 
     /**
-     * Parse definition using tokenizer approach
-     * @param {string} definition - ABNF rule definition
+     * Reconstruct original rule text from line information
+     * @param {string} originalContent - Original file content
+     * @param {number} startLine - Starting line of the rule
+     * @param {Token[]} ruleTokens - Tokens belonging to this rule
+     * @returns {string} Reconstructed rule text
+     * @private
+     */
+    _reconstructRuleText(originalContent, startLine, ruleTokens) {
+        if (ruleTokens.length === 0) return '';
+        
+        const lines = originalContent.split('\n');
+        const endLine = ruleTokens[ruleTokens.length - 1].line;
+        
+        // Extract lines from startLine to endLine
+        const ruleLines = [];
+        for (let i = startLine - 1; i < endLine && i < lines.length; i++) {
+            ruleLines.push(lines[i]);
+        }
+        
+        // Extract just the rule definition part (after the =)
+        if (ruleLines.length > 0) {
+            const firstLine = ruleLines[0];
+            const assignmentIndex = firstLine.indexOf('=');
+            if (assignmentIndex !== -1) {
+                ruleLines[0] = firstLine.substring(assignmentIndex + 1).trim();
+            }
+        }
+        
+        return ruleLines.join('\n').trim();
+    }
+
+    /**
+     * Parse a sequence of tokens into an AST expression
+     * @param {Token[]} tokens - Tokens for this rule's expression
      * @returns {ASTNode} AST node representing the rule
      * @private
      */
-    _parseTokenizedDefinition(definition) {
-        const tokens = this.tokenizer.tokenize(definition);
+    _parseTokenSequence(tokens) {
+        if (tokens.length === 0) {
+            throw new ABNFParseError('Empty rule definition');
+        }
+        
         return this._parseExpression(tokens, 0).element;
     }
+
+
 
     /**
      * Parse expression from tokens starting at given index
@@ -227,6 +388,7 @@ class ABNFParser {
      * @private
      */
     _parseAlternation(tokens, index) {
+        const startToken = tokens[index];
         let result = this._parseConcatenation(tokens, index);
         const alternatives = [result.element];
         index = result.nextIndex;
@@ -240,7 +402,12 @@ class ABNFParser {
 
         if (alternatives.length > 1) {
             return {
-                element: { type: 'stack', elements: alternatives },
+                element: { 
+                    type: 'stack', 
+                    elements: alternatives,
+                    line: startToken?.line,
+                    column: startToken?.column
+                },
                 nextIndex: index
             };
         } else {
@@ -257,6 +424,7 @@ class ABNFParser {
      */
     _parseConcatenation(tokens, index) {
         const elements = [];
+        const startToken = tokens[index];
         
         while (index < tokens.length) {
             // Stop at alternation or closing brackets/parens
@@ -272,13 +440,19 @@ class ABNFParser {
 
         if (elements.length > 1) {
             return {
-                element: { type: 'sequence', elements: elements },
+                element: { 
+                    type: 'sequence', 
+                    elements: elements,
+                    line: startToken?.line,
+                    column: startToken?.column
+                },
                 nextIndex: index
             };
         } else if (elements.length === 1) {
             return { element: elements[0], nextIndex: index };
         } else {
-            throw new Error('Empty expression');
+            const token = tokens[index] || null;
+            throw new ABNFParseError('Empty expression', token?.line, token?.column, token);
         }
     }
 
@@ -332,17 +506,38 @@ class ABNFParser {
 
         // Apply repetition only if it was found
         if (hasRepetition) {
+            const startToken = tokens[index - 1]; // Get token position before we parsed the element
             if (min === 0 && max === null) {
                 // *element - zero or more
-                element = { type: 'loop', element: element };
+                element = { 
+                    type: 'loop', 
+                    element: element,
+                    line: startToken?.line,
+                    column: startToken?.column
+                };
             } else if (min === 1 && max === null) {
                 // 1*element - one or more
                 const baseElement = element;
-                const loopElement = { type: 'loop', element: element };
-                element = { type: 'sequence', elements: [baseElement, loopElement] };
+                const loopElement = { 
+                    type: 'loop', 
+                    element: element,
+                    line: startToken?.line,
+                    column: startToken?.column
+                };
+                element = { 
+                    type: 'sequence', 
+                    elements: [baseElement, loopElement],
+                    line: startToken?.line,
+                    column: startToken?.column
+                };
             } else if (min === 0 && max === 1) {
                 // *1element or [element] - optional
-                element = { type: 'bypass', element: element };
+                element = { 
+                    type: 'bypass', 
+                    element: element,
+                    line: startToken?.line,
+                    column: startToken?.column
+                };
             }
         }
 
@@ -358,7 +553,7 @@ class ABNFParser {
      */
     _parseElement(tokens, index) {
         if (index >= tokens.length) {
-            throw new Error('Unexpected end of input');
+            throw new ABNFParseError('Unexpected end of input');
         }
 
         const token = tokens[index];
@@ -383,14 +578,25 @@ class ABNFParser {
                 text = text.slice(1, -1);
                 
                 return {
-                    element: { type: 'terminal', text: text, quoted: true },
+                    element: { 
+                        type: 'terminal', 
+                        text: text, 
+                        quoted: true,
+                        line: token.line,
+                        column: token.column
+                    },
                     nextIndex: index + 1
                 };
 
             case 'identifier':
                 // Non-terminal rule reference
                 return {
-                    element: { type: 'nonterminal', text: token.value },
+                    element: { 
+                        type: 'nonterminal', 
+                        text: token.value,
+                        line: token.line,
+                        column: token.column
+                    },
                     nextIndex: index + 1
                 };
 
@@ -398,16 +604,24 @@ class ABNFParser {
             case 'decval':
                 // Hex or decimal values - treat as terminals
                 return {
-                    element: { type: 'terminal', text: token.value, quoted: false },
+                    element: { 
+                        type: 'terminal', 
+                        text: token.value, 
+                        quoted: false,
+                        line: token.line,
+                        column: token.column
+                    },
                     nextIndex: index + 1
                 };
 
             case 'lparen':
                 // Grouped expression
+                const lparenToken = token;
                 index++; // Skip '('
                 const groupResult = this._parseExpression(tokens, index);
                 if (groupResult.nextIndex >= tokens.length || tokens[groupResult.nextIndex].type !== 'rparen') {
-                    throw new Error('Missing closing parenthesis');
+                    const currentToken = tokens[groupResult.nextIndex] || null;
+                    throw new ABNFParseError('Missing closing parenthesis', lparenToken.line, lparenToken.column, lparenToken);
                 }
                 return {
                     element: groupResult.element,
@@ -416,18 +630,25 @@ class ABNFParser {
 
             case 'lbracket':
                 // Optional element [element]
+                const lbracketToken = token;
                 index++; // Skip '['
                 const optResult = this._parseExpression(tokens, index);
                 if (optResult.nextIndex >= tokens.length || tokens[optResult.nextIndex].type !== 'rbracket') {
-                    throw new Error('Missing closing bracket');
+                    const currentToken = tokens[optResult.nextIndex] || null;
+                    throw new ABNFParseError('Missing closing bracket', lbracketToken.line, lbracketToken.column, lbracketToken);
                 }
                 return {
-                    element: { type: 'bypass', element: optResult.element },
+                    element: { 
+                        type: 'bypass', 
+                        element: optResult.element,
+                        line: lbracketToken.line,
+                        column: lbracketToken.column
+                    },
                     nextIndex: optResult.nextIndex + 1 // Skip ']'
                 };
 
             default:
-                throw new Error(`Unexpected token: ${token.type} '${token.value}'`);
+                throw new ABNFParseError(`Unexpected token: ${token.type}`, token.line, token.column, token);
         }
     }
 

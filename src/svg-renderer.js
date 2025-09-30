@@ -38,18 +38,12 @@ class RenderContext {
     /**
      * Create a render context
      * @param {number} gridSize - Grid size in pixels
-     * @param {number} endpointRadius - Radius for start/end endpoint circles
-     * @param {number} textBoxRadius - Border radius for text boxes
      */
-    constructor(gridSize, endpointRadius, textBoxRadius) {
+    constructor(gridSize) {
         /** @type {string} Accumulated SVG markup */
         this.svg = '';
         /** @type {number} Grid size in pixels */
         this.gridSize = gridSize;
-        /** @type {number} Start/end endpoint radius */
-        this.endpointRadius = endpointRadius;
-        /** @type {number} Text box border radius */
-        this.textBoxRadius = textBoxRadius;
         /** @type {RailPathBuilder} Track builder using grid units */
         this.trackBuilder = new RailPathBuilder(gridSize);
         
@@ -59,25 +53,25 @@ class RenderContext {
 
     /**
      * Add a text box at the specified grid coordinates
-     * @param {number} gridX - X position in grid units
-     * @param {number} gridY - Y position in grid units
-     * @param {number} gridWidth - Width in grid units
-     * @param {number} gridHeight - Height in grid units
+     * @param {number} x - X position in grid units
+     * @param {number} y - Y position in grid units
+     * @param {number} width - Width in grid units
+     * @param {number} height - Height in grid units
      * @param {string} text - Text content
      * @param {'terminal'|'nonterminal'} boxType - Box type
      * @param {number} baseline - Baseline position in grid units for track connections
      */
-    addTextBox(gridX, gridY, gridWidth, gridHeight, text, boxType, baseline) {
-        const h = gridHeight * this.gridSize;
+    addTextBox(x, y, width, height, text, boxType, baseline) {
+        const h = height * this.gridSize;
         
         // Text box should exclude rail connection areas (1 unit on each side)
-        const boxWidth = (gridWidth - 2) * this.gridSize;
+        const boxWidth = (width - 2) * this.gridSize;
         const boxX = 1 * this.gridSize; // Start 1 grid unit from left edge
         
         this.svg += `<g class="textbox-expression" data-type="${boxType}" data-text="${this.escapeXml(text)}">`;
         
         // Draw box with correct width, positioned to leave space for rails
-        this.svg += `<rect x="${boxX}" y="0" width="${boxWidth}" height="${h}" rx="${this.textBoxRadius}" class="textbox ${boxType}"/>`;
+        this.svg += `<rect x="${boxX}" y="0" width="${boxWidth}" height="${h}" class="textbox ${boxType}"/>`;
         
         // Draw text centered in the actual text box area (not the full element width)
         const textX = boxX + boxWidth / 2;
@@ -92,7 +86,7 @@ class RenderContext {
         this.svg += leftTrack;
         
         const rightTrack = this.trackBuilder
-            .start(gridWidth - 1, baseline, Direction.EAST)
+            .start(width - 1, baseline, Direction.EAST)
             .forward(1)
             .finish('textbox-right');
         this.svg += rightTrack;
@@ -104,12 +98,11 @@ class RenderContext {
      * Add a start/end endpoint circle at the specified grid coordinates
      * @param {number} gridX - X position in grid units
      * @param {number} gridY - Y position in grid units
-     * @param {'start'|'end'} endpointType - Type of endpoint
      */
-    addEndpoint(gridX, gridY, endpointType) {
+    addEndpoint(gridX, gridY) {
         const x = gridX * this.gridSize;
         const y = gridY * this.gridSize;
-        this.svg += `<circle cx="${x}" cy="${y}" r="${this.endpointRadius}" class="${endpointType}-endpoint"/>`;
+        this.svg += `<circle cx="${x}" cy="${y}" class="endpoint"/>`;
     }
 
     /**
@@ -258,6 +251,9 @@ class TextBoxExpression extends Expression {
         this.width = Math.max(4, minWidth + (minWidth % 2)); // Round up to nearest even number, minimum 4
         this.height = 2; // Fixed height of 2 grid units for proper rail connection
         this.baseline = 1; // Baseline at center (1 grid unit from top/bottom)
+        
+        // Assert the width invariant: all Expression widths must be even
+        console.assert(this.width % 2 === 0, `TextBoxExpression violates width invariant: expected even width, got ${this.width}`);
     }
 
     /**
@@ -388,6 +384,9 @@ class StackExpression extends Expression {
         this.width = 2 + maxWidth + 2; // 2 units left rail space + max child width + 2 units right rail space
         this.height = totalHeight + (totalHeight % 2); // Add 1 if odd to make it even
         this.baseline = this.children[0].baseline; // Use first child's baseline
+        
+        // Assert the width invariant: all Expression widths must be even
+        console.assert(this.width % 2 === 0, `StackExpression violates width invariant: expected even width, got ${this.width}`);
     }
 
     render(ctx) {
@@ -467,6 +466,9 @@ class BypassExpression extends Expression {
         this.width = this.child.width + 4; // Add 4 for routing space
         this.height = this.child.height + 1; // Extra height for bypass track
         this.baseline = this.child.baseline + 1;
+        
+        // Assert the width invariant: all Expression widths must be even
+        console.assert(this.width % 2 === 0, `BypassExpression violates width invariant: expected even width, got ${this.width}`);
     }
 
     /**
@@ -525,6 +527,9 @@ class LoopExpression extends Expression {
         this.width = this.child.width + 4; // Add 4 for routing space
         this.height = this.child.height + 1; // Extra height for loop back track
         this.baseline = this.child.baseline + 1;
+        
+        // Assert the width invariant: all Expression widths must be even
+        console.assert(this.width % 2 === 0, `LoopExpression violates width invariant: expected even width, got ${this.width}`);
     }
 
     /**
@@ -584,10 +589,7 @@ class SVGRenderer {
         this.trackWidth = 6;
         /** @type {number} Text border width in pixels */
         this.textBorder = 3;
-        /** @type {number} Border radius for start/end endpoint circles */
-        this.endpointRadius = this.gridSize * 0.9;
-        /** @type {number} Border radius for text boxes */
-        this.textBoxRadius = this.gridSize * 0.6;
+
     }
 
     /**
@@ -658,12 +660,12 @@ class SVGRenderer {
         let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
 
         // Create new RenderContext instance
-        const ctx = new RenderContext(this.gridSize, this.endpointRadius, this.textBoxRadius);
+        const ctx = new RenderContext(this.gridSize);
 
         // Add start endpoint at grid coordinates
         const startX = 1; // 1 grid unit from left edge
         const startY = 1 + expression.baseline; // At baseline position
-        ctx.addEndpoint(startX, startY, 'start');
+        ctx.addEndpoint(startX, startY);
 
         // Render main expression at grid coordinates - positioned after start rail (2 units)
         const expressionX = startX + 2; // Start endpoint + 2 units for rail
@@ -672,7 +674,7 @@ class SVGRenderer {
         // Add end endpoint at grid coordinates - positioned after expression + end rail (2 units)
         const endX = expressionX + expression.width + 2; // After expression + 2 units for rail
         const endY = 1 + expression.baseline; // At baseline position
-        ctx.addEndpoint(endX, endY, 'end');
+        ctx.addEndpoint(endX, endY);
 
         // Add connecting tracks between endpoints and expression
         ctx.trackBuilder
