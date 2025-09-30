@@ -41,7 +41,7 @@ async function generateIndexPage(processedFiles, outputDir) {
                 htmlFile: htmlFile.replace(/\\/g, '/'), // Ensure forward slashes for web
                 ruleCount: file.rulesCount
             };
-        });
+        }).sort((a, b) => a.name.localeCompare(b.name));
         
         const totalRules = files.reduce((sum, file) => sum + file.ruleCount, 0);
         

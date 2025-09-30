@@ -5,7 +5,7 @@
   --grid-size: 16px;
   --font-size: 14px;
   --track-width: 6px;
-  --text-border: 3px;
+  --text-border: 2px;
   /* Text box corner radius factor */
   --text-box-corner-radius-factor: 0.8;
   /* Rule terminal (endpoint) circle radius factor */
@@ -125,6 +125,7 @@
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #fafafa;
+    font-family:'Courier New', Courier, monospace
 }
 
 .syntax-rule h2 {
