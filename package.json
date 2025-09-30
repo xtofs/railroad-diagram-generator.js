@@ -1,6 +1,6 @@
 {
   "name": "abnf-to-railroad",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Command line tool to convert ABNF grammar files to HTML with railroad diagrams",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -13,7 +13,9 @@
     "examples": "node bin/cli.js generate \"examples/*.abnf\" --index",
     "watch": "node bin/cli.js watch",
     "watch:examples": "node bin/cli.js watch \"examples/*.abnf\" --index",
-    "watch:calculator": "node bin/cli.js watch \"examples/calculator.abnf\""
+    "watch:calculator": "node bin/cli.js watch \"examples/calculator.abnf\"",
+    "prepublishOnly": "echo \"Preparing to publish package...\"",
+    "test": "echo \"Warning: no test specified\" && exit 0"
   },
   "keywords": [
     "abnf",
@@ -21,10 +23,26 @@
     "diagram",
     "grammar",
     "syntax",
-    "html"
+    "svg",
+    "visualization"
   ],
-  "author": "",
+  "author": "xtofs",
   "license": "MIT",
+  "homepage": "https://github.com/xtofs/railroad-diagram-generator.js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xtofs/railroad-diagram-generator.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xtofs/railroad-diagram-generator.js/issues"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "assets/",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "canvas": "^3.2.0",
     "commander": "14.0.1",
