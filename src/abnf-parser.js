@@ -36,14 +36,17 @@ class ABNFParseError extends Error {
 }
 
 /**
+ * @typedef {Object} Position
+ * @property {number} line - Line number (1-based)
+ * @property {number} column - Column number (1-based)
+ */
+
+/**
  * @typedef {Object} ASTNode
  * @property {string} type - Node type ('terminal', 'nonterminal', 'sequence', 'stack', 'bypass', 'loop')
- * @property {string} [text] - Text content (for terminal/nonterminal nodes)
- * @property {boolean} [quoted] - Whether terminal was originally quoted in ABNF (for terminals only)
- * @property {ASTNode[]} [elements] - Child nodes (for container nodes)
- * @property {ASTNode} [element] - Single child node (for wrapper nodes)
- * @property {number} [line] - Line number where this node starts (1-based)
- * @property {number} [column] - Column number where this node starts (1-based)
+ * @property {string} [text] - Text content - for terminals: literal ABNF syntax; for nonterminals: rule name
+ * @property {ASTNode[]} [elements] - Child nodes (always array, even for single child)
+ * @property {Position} [position] - Source position information
  */
 
 /**
@@ -75,9 +78,9 @@ class ABNFTokenizer {
             // String literals with optional case sensitivity prefixes
             '(?<string>(?:%[si])?"[^"]*")',
             "(?<sstring>(?:%[si])?'[^']*')",
-            // Hex/decimal values (including concatenation with dots)
-            '(?<hexval>%x[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]+)*(?:-[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]+)*)?)',
-            '(?<decval>%d[0-9]+(?:\\.[0-9]+)*(?:-[0-9]+(?:\\.[0-9]+)*)?)',
+            // Hex/decimal values per RFC 5234: concatenation OR range, not mixed
+            '(?<hexval>%x[0-9A-Fa-f]+(?:(?:\\.[0-9A-Fa-f]+)+|(?:-[0-9A-Fa-f]+))?)',
+            '(?<decval>%d[0-9]+(?:(?:\\.[0-9]+)+|(?:-[0-9]+))?)',
             // Repetition counts (must come before standalone *)
             '(?<repetition>[0-9]+\\*[0-9]*|[0-9]*\\*[0-9]+)',
             // Standalone asterisk for zero-or-more
@@ -405,8 +408,7 @@ class ABNFParser {
                 element: { 
                     type: 'stack', 
                     elements: alternatives,
-                    line: startToken?.line,
-                    column: startToken?.column
+                    position: startToken ? { line: startToken.line, column: startToken.column } : undefined
                 },
                 nextIndex: index
             };
@@ -443,8 +445,7 @@ class ABNFParser {
                 element: { 
                     type: 'sequence', 
                     elements: elements,
-                    line: startToken?.line,
-                    column: startToken?.column
+                    position: startToken ? { line: startToken.line, column: startToken.column } : undefined
                 },
                 nextIndex: index
             };
@@ -507,36 +508,34 @@ class ABNFParser {
         // Apply repetition only if it was found
         if (hasRepetition) {
             const startToken = tokens[index - 1]; // Get token position before we parsed the element
+            const position = startToken ? { line: startToken.line, column: startToken.column } : undefined;
+            
             if (min === 0 && max === null) {
                 // *element - zero or more
                 element = { 
                     type: 'loop', 
-                    element: element,
-                    line: startToken?.line,
-                    column: startToken?.column
+                    elements: [element],
+                    position: position
                 };
             } else if (min === 1 && max === null) {
                 // 1*element - one or more
                 const baseElement = element;
                 const loopElement = { 
                     type: 'loop', 
-                    element: element,
-                    line: startToken?.line,
-                    column: startToken?.column
+                    elements: [element],
+                    position: position
                 };
                 element = { 
                     type: 'sequence', 
                     elements: [baseElement, loopElement],
-                    line: startToken?.line,
-                    column: startToken?.column
+                    position: position
                 };
             } else if (min === 0 && max === 1) {
                 // *1element or [element] - optional
                 element = { 
                     type: 'bypass', 
-                    element: element,
-                    line: startToken?.line,
-                    column: startToken?.column
+                    elements: [element],
+                    position: position
                 };
             } else if (min === max && min > 1) {
                 // nElement - exact count (e.g., 8HEXDIG, 4HEXDIG)
@@ -544,9 +543,8 @@ class ABNFParser {
                     type: 'repetition',
                     min: min,
                     max: max,
-                    element: element,
-                    line: startToken?.line,
-                    column: startToken?.column
+                    elements: [element],
+                    position: position
                 };
             }
         }
@@ -571,27 +569,11 @@ class ABNFParser {
         switch (token.type) {
             case 'string':
             case 'sstring':
-                // Terminal string - handle prefixes and remove quotes
-                let text = token.value;
-                let isCaseSensitive = true; // Default for plain strings
-                
-                // Check for case sensitivity prefixes
-                if (text.startsWith('%s')) {
-                    isCaseSensitive = true;
-                    text = text.slice(2); // Remove %s prefix
-                } else if (text.startsWith('%i')) {
-                    isCaseSensitive = false;
-                    text = text.slice(2); // Remove %i prefix
-                }
-                
-                // Remove quotes
-                text = text.slice(1, -1);
-                
+                // Terminal string - preserve literal ABNF syntax
                 return {
                     element: { 
                         type: 'terminal', 
-                        text: text, 
-                        quoted: true,
+                        text: token.value, // Preserve literal ABNF syntax
                         line: token.line,
                         column: token.column
                     },
@@ -604,20 +586,18 @@ class ABNFParser {
                     element: { 
                         type: 'nonterminal', 
                         text: token.value,
-                        line: token.line,
-                        column: token.column
+                        position: { line: token.line, column: token.column }
                     },
                     nextIndex: index + 1
                 };
 
             case 'hexval':
             case 'decval':
-                // Hex or decimal values - treat as terminals
+                // Hex or decimal values - preserve literal ABNF syntax
                 return {
                     element: { 
                         type: 'terminal', 
-                        text: token.value, 
-                        quoted: false,
+                        text: token.value, // Preserve literal ABNF syntax
                         line: token.line,
                         column: token.column
                     },
@@ -650,9 +630,8 @@ class ABNFParser {
                 return {
                     element: { 
                         type: 'bypass', 
-                        element: optResult.element,
-                        line: lbracketToken.line,
-                        column: lbracketToken.column
+                        elements: [optResult.element],
+                        position: { line: lbracketToken.line, column: lbracketToken.column }
                     },
                     nextIndex: optResult.nextIndex + 1 // Skip ']'
                 };
@@ -693,10 +672,10 @@ function addDebugStringToElement(element) {
                     return `stack(${stackElements})`;
                     
                 case 'bypass':
-                    return `bypass(${this.element.toDebugString()})`;
+                    return `bypass(${this.elements[0].toDebugString()})`;
                     
                 case 'loop':
-                    return `loop(${this.element.toDebugString()})`;
+                    return `loop(${this.elements[0].toDebugString()})`;
                     
                 default:
                     return `unknown(${this.type})`;
@@ -707,8 +686,6 @@ function addDebugStringToElement(element) {
     // Recursively add to child elements
     if (element.elements && Array.isArray(element.elements)) {
         element.elements.forEach(child => addDebugStringToElement(child));
-    } else if (element.element) {
-        addDebugStringToElement(element.element);
     }
 
     return element;

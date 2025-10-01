@@ -34,7 +34,7 @@ test('ABNF Parser - Repetition AST generation', () => {
         assert.strictEqual(rule.expression.type, 'repetition');
         assert.strictEqual(rule.expression.min, testCase.min);
         assert.strictEqual(rule.expression.max, testCase.max);
-        assert.strictEqual(rule.expression.element.type, 'nonterminal');
+        assert.strictEqual(rule.expression.elements[0].type, 'nonterminal');
     });
     
     // Test 1DIGIT - should be simplified to just DIGIT (no repetition node)

@@ -31,10 +31,7 @@ class ASTTransformer {
         switch (element.type) {
             case 'terminal':
                 if (!element.text) throw new Error('Terminal element missing text');
-                return new TerminalElement(
-                    element.text,
-                    element.quoted || false
-                );
+                return new TerminalElement(element.text);
 
             case 'nonterminal':
                 if (!element.text) throw new Error('Nonterminal element missing text');
@@ -55,13 +52,17 @@ class ASTTransformer {
                 return new StackElement(stackChildren);
 
             case 'bypass':
-                if (!element.element) throw new Error('Bypass element missing child element');
-                const bypassChild = this.transform(element.element);
+                if (!element.elements || element.elements.length !== 1) {
+                    throw new Error('Bypass element missing single child element');
+                }
+                const bypassChild = this.transform(element.elements[0]);
                 return new BypassElement(bypassChild);
 
             case 'loop':
-                if (!element.element) throw new Error('Loop element missing child element');
-                const loopChild = this.transform(element.element);
+                if (!element.elements || element.elements.length !== 1) {
+                    throw new Error('Loop element missing single child element');
+                }
+                const loopChild = this.transform(element.elements[0]);
                 return new LoopElement(loopChild);
 
             case 'repetition':
@@ -80,13 +81,13 @@ class ASTTransformer {
      * @private
      */
     _transformRepetition(element) {
-        const { min, max, element: childElement } = element;
+        const { min, max, elements } = element;
         
-        if (!childElement) {
-            throw new Error('Repetition element missing child element');
+        if (!elements || elements.length !== 1) {
+            throw new Error('Repetition element missing single child element');
         }
 
-        const child = this.transform(childElement);
+        const child = this.transform(elements[0]);
 
         // Handle different repetition patterns
         if (min === 0 && max === null) {

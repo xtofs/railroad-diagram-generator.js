@@ -28,25 +28,19 @@ function measureText(text, fontSize = 14, fontFamily = 'monospace') {
 class TextBoxElement extends Element {
     /**
      * Create a text box expression
-     * @param {string} text - Text to display in the box
+     * @param {string} text - Text to display in the box (literal ABNF syntax for terminals)
      * @param {'terminal'|'nonterminal'} boxType - Type of text box
-     * @param {number} [fontSize=14] - Font size in pixels
-     * @param {string} [fontFamily='monospace'] - Font family
-     * @param {number} [gridSize=16] - Grid size in pixels
-     * @param {boolean} [quoted=false] - Whether terminal was originally quoted (terminals only)
      */
-    constructor(text, boxType, quoted = false) {
+    constructor(text, boxType) {
         super();
         /** @type {string} */
         this.text = text;
         /** @type {'terminal'|'nonterminal'} */
         this.boxType = boxType;
-        /** @type {boolean} */
-        this.quoted = quoted;
         
-        // For display: add quotes around quoted terminals
+        // Use literal text directly (already contains proper ABNF syntax)
         /** @type {string} */
-        this.displayText = (boxType === 'terminal' && quoted) ? `"${text}"` : text;
+        this.displayText = text;
         
         // Layout will be calculated in layout() method
     }

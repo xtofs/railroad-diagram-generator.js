@@ -10,7 +10,7 @@
     <h1>{{title}}</h1>
     
 {{#each rules}}
-    <div class="syntax-rule" id="syntax-rule-{{sanitizeId name}}">
+    <div class="syntax-rule" id="{{sanitizeId name}}">
         <h2>{{name}}</h2>
         <p><code>{{name}} := {{original}}</code></p>
         <div class="diagram-container" data-debug-ast="{{debugString}}">
@@ -196,13 +196,13 @@
                     e.stopPropagation();
                     
                     const ruleName = textElement.textContent.trim();
-                    const targetElement = document.getElementById(`syntax-rule-${ruleName}`);
+                    const targetElement = document.getElementById(ruleName);
                     
                     if (targetElement) {
                         console.log(`Navigating to rule: ${ruleName}`);
                         
                         // Update the URL hash
-                        history.pushState(null, null, `#syntax-rule-${ruleName}`);
+                        history.pushState(null, null, `#${ruleName}`);
                         
                         targetElement.scrollIntoView({ 
                             block: 'start' 

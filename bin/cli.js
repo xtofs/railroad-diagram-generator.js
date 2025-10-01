@@ -86,8 +86,11 @@ program
         const converter = new ABNFToRailroad();
         
         try {
+            // Normalize path separators for cross-platform glob patterns
+            const normalizedInput = input.replace(/\\/g, '/');
+            
             // Find matching files using glob pattern
-            const inputFiles = await glob(input, { 
+            const inputFiles = await glob(normalizedInput, { 
                 ignore: ['node_modules/**', '**/node_modules/**'],
                 absolute: true 
             });
@@ -177,8 +180,11 @@ program
         const converter = new ABNFToRailroad();
         
         try {
+            // Normalize path separators for cross-platform glob patterns
+            const normalizedInput = input.replace(/\\/g, '/');
+            
             // Find matching files using glob pattern
-            const inputFiles = await glob(input, { 
+            const inputFiles = await glob(normalizedInput, { 
                 ignore: ['node_modules/**', '**/node_modules/**'],
                 absolute: true 
             });
@@ -249,8 +255,11 @@ program
                     currentConverter = new ABNFToRailroadReloaded();
                 }
                 
+                // Normalize path separators for cross-platform glob patterns
+                const normalizedInput = input.replace(/\\/g, '/');
+                
                 // Find matching files using glob pattern
-                const inputFiles = await glob(input, { 
+                const inputFiles = await glob(normalizedInput, { 
                     ignore: ['node_modules/**', '**/node_modules/**'],
                     absolute: true 
                 });
@@ -334,8 +343,11 @@ program
         const watchers = [];
         
         try {
+            // Normalize path separators for cross-platform glob patterns
+            const normalizedInput = input.replace(/\\/g, '/');
+            
             // Watch ABNF files
-            const abnfFiles = await glob(input, { 
+            const abnfFiles = await glob(normalizedInput, { 
                 ignore: ['node_modules/**', '**/node_modules/**'],
                 absolute: true 
             });

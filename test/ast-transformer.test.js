@@ -14,14 +14,12 @@ test('ASTTransformer - Terminal transformation', () => {
     
     const terminalAST = {
         type: 'terminal',
-        text: 'hello',
-        quoted: true
+        text: '"hello"' // Literal ABNF syntax
     };
     
     const expression = transformer.transform(terminalAST);
     assert.ok(expression instanceof TerminalElement);
-    assert.strictEqual(expression.text, 'hello');
-    assert.strictEqual(expression.quoted, true);
+    assert.strictEqual(expression.text, '"hello"'); // Should preserve literal syntax
     assert.strictEqual(expression.isLaidOut, false); // Should not be laid out yet
 });
 
@@ -46,10 +44,10 @@ test('ASTTransformer - Repetition transformation to sequence', () => {
         type: 'repetition',
         min: 4,
         max: 4,
-        element: {
+        elements: [{
             type: 'nonterminal',
             text: 'HEXDIG'
-        }
+        }]
     };
     
     const expression = transformer.transform(repetitionAST);
@@ -73,10 +71,10 @@ test('ASTTransformer - Large repetition (8HEXDIG)', () => {
         type: 'repetition',
         min: 8,
         max: 8,
-        element: {
+        elements: [{
             type: 'nonterminal',
             text: 'HEXDIG'
-        }
+        }]
     };
     
     const expression = transformer.transform(repetitionAST);

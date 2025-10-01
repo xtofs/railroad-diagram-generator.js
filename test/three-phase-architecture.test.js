@@ -4,10 +4,9 @@ const { Element, TextBoxElement, TerminalElement, NonterminalElement, SequenceEl
 
 test('Three-phase architecture - Construction phase', () => {
     // Phase 1: Construction without layout
-    const terminal = new TerminalElement('hello', true);
+    const terminal = new TerminalElement('"hello"'); // Use literal ABNF syntax
     
-    assert.strictEqual(terminal.text, 'hello');
-    assert.strictEqual(terminal.quoted, true);
+    assert.strictEqual(terminal.text, '"hello"');
     assert.strictEqual(terminal.displayText, '"hello"');
     assert.strictEqual(terminal.isLaidOut, false);
     assert.strictEqual(terminal.width, 0); // No layout calculated yet
@@ -17,7 +16,7 @@ test('Three-phase architecture - Construction phase', () => {
 
 test('Three-phase architecture - Layout phase', () => {
     // Phase 1: Construction
-    const terminal = new TerminalElement('hello', true);
+    const terminal = new TerminalElement('"hello"'); // Use literal ABNF syntax
     
     // Phase 2: Layout
     const layoutConfig = {
