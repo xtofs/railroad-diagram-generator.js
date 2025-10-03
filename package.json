@@ -1,6 +1,6 @@
 {
   "name": "abnf-to-railroad",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Command line tool to convert ABNF grammar files to HTML with railroad diagrams",
   "main": "src/index.js",
   "types": "src/index.d.ts",
