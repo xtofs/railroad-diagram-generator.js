@@ -86,7 +86,7 @@ test('Literal terminal rendering - End-to-end pipeline', () => {
     const rule = rules.get('test-rule');
     
     // Should be a stack (alternation) with 4 terminal children
-    assert.strictEqual(rule.expression.type, 'stack');
+    assert.strictEqual(rule.expression.type, 'alternation');
     assert.strictEqual(rule.expression.elements.length, 4);
     
     const terminals = rule.expression.elements;

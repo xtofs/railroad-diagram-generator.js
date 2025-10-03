@@ -55,9 +55,10 @@ class SVGRenderer {
     /**
      * Render a diagram definition to SVG
      * @param {DiagramElement} diagramElement - Abstract diagram definition
-     * @returns {string} Complete SVG diagram
+     * @param {boolean} [returnLayoutElement=false] - If true, returns {svg, layoutElement}, otherwise just svg string
+     * @returns {string|{svg: string, layoutElement: LayoutElement}} Complete SVG diagram or object with SVG and layout element
      */
-    render(diagramElement) {
+    render(diagramElement, returnLayoutElement = false) {
         // Phase 1: Build element tree from diagram definition
         const element = this.transformer.transform(diagramElement);
         
@@ -105,9 +106,12 @@ class SVGRenderer {
         const totalHeight = (element.height + 2) * this.config.gridSize + 1; // Add padding + 1 pixel for pattern lines
         
         // Generate complete SVG with proper structure
-        return `<svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">
+        const svg = `<svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" class="railroad-diagram">
 ${ctx.svg}
 </svg>`;
+
+        // Return either just SVG or both SVG and layout element
+        return returnLayoutElement ? { svg, layoutElement: element } : svg;
     }
 
     /**

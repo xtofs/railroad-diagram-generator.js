@@ -1,18 +1,18 @@
-const Element = require('./element');
+const LayoutElement = require('./element');
 const { Direction } = require('./track-builder');
 
 /**
  * Sequence element (elements in sequence)
- * @extends Element
+ * @extends LayoutElement
  */
-class SequenceElement extends Element {
+class SequenceElement extends LayoutElement {
     /**
      * Create a sequence element
-     * @param {Element[]} elements - Array of child elements to render in sequence
+     * @param {LayoutElement[]} elements - Array of child elements to render in sequence
      */
     constructor(elements) {
         super();
-        /** @type {Element[]} */
+        /** @type {LayoutElement[]} */
         this.children = elements;
         
         // Layout will be calculated in layout() method
@@ -69,6 +69,18 @@ class SequenceElement extends Element {
             
             currentX += child.width + 2; // Add 2 for the unit space
         });
+    }
+
+    /**
+     * Convert to debug string representation
+     * @returns {string} Debug string like 'sequence(terminal("x"), nonterminal("Y"))'
+     */
+    toString() {
+        if (this.children.length === 0) {
+            return 'sequence()';
+        }
+        const childrenDesc = this.children.map(child => child.toString()).join(', ');
+        return `sequence(${childrenDesc})`;
     }
 }
 

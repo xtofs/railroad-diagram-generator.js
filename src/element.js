@@ -16,21 +16,22 @@
  */
 
 /**
- * Abstract base class for all diagram elements
+ * Abstract base class for all diagram elements of the visual/layout tree
  * 
  * Three-phase architecture:
  * 1. Construction: Build logical structure without layout
  * 2. Layout: Calculate dimensions with LayoutConfig parameters  
  * 3. Rendering: Generate SVG using RenderConfig parameters
  * 
- * CRITICAL INVARIANT: All Element widths must be even numbers
- * - Ensures proper baseline alignment in railroad diagrams
+ * CRITICAL INVARIANT: All LayoutElement widths must be even 
  * - Allows predictable track routing with centered baselines
  * - Each subclass layout() method must maintain this invariant
  * 
+ * CRITICAL INVARIANT: All LayoutElement height must be at least 2
+ * - Ensures proper baseline alignment in railroad diagrams 
  * @abstract
  */
-class Element {
+class LayoutElement {
     /**
      * @constructor
      */
@@ -65,6 +66,15 @@ class Element {
     render(ctx) {
         throw new Error('render must be implemented by subclasses');
     }
+
+    /**
+     * Convert element to debug string representation
+     * Default implementation shows class name, can be overridden by subclasses
+     * @returns {string} Debug string representation
+     */
+    toString() {
+        return this.constructor.name; // .replace('Element', '').toLowerCase();
+    }
 }
 
-module.exports = Element;
+module.exports = LayoutElement;

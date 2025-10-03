@@ -10,7 +10,7 @@
  */
 
 // Base element class
-const Element = require('./element');
+const LayoutElement = require('./element');
 
 // Text-based elements  
 const { TextBoxElement } = require('./text-box-element');
@@ -26,7 +26,7 @@ const LoopElement = require('./loop-element');
 // Export all elements for convenient importing
 module.exports = {
     // Base class
-    Element,
+    LayoutElement,
     
     // Text elements
     TextBoxElement,

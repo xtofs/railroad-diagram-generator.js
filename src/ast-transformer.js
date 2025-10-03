@@ -44,29 +44,24 @@ class ASTTransformer {
                 const sequenceChildren = element.elements.map(child => this.transform(child));
                 return new SequenceElement(sequenceChildren);
 
-            case 'stack':
+
+
+            case 'alternation':
                 if (!element.elements || element.elements.length === 0) {
-                    throw new Error('Stack element missing elements array');
+                    throw new Error('Alternation element missing elements array');
                 }
-                const stackChildren = element.elements.map(child => this.transform(child));
-                return new StackElement(stackChildren);
+                const alternationChildren = element.elements.map(child => this.transform(child));
+                return new StackElement(alternationChildren);
 
-            case 'bypass':
+            case 'optional':
                 if (!element.elements || element.elements.length !== 1) {
-                    throw new Error('Bypass element missing single child element');
+                    throw new Error('Optional element missing single child element');
                 }
-                const bypassChild = this.transform(element.elements[0]);
-                return new BypassElement(bypassChild);
-
-            case 'loop':
-                if (!element.elements || element.elements.length !== 1) {
-                    throw new Error('Loop element missing single child element');
-                }
-                const loopChild = this.transform(element.elements[0]);
-                return new LoopElement(loopChild);
+                const optionalChild = this.transform(element.elements[0]);
+                return new BypassElement(optionalChild);
 
             case 'repetition':
-                // Handle exact count repetition (e.g., 8HEXDIG, 4HEXDIG)
+                // Handle all repetition patterns (e.g., *X, 1*X, 4X, etc.)
                 return this._transformRepetition(element);
 
             default:
@@ -91,13 +86,17 @@ class ASTTransformer {
 
         // Handle different repetition patterns
         if (min === 0 && max === null) {
-            // *element - zero or more
-            return new LoopElement(child);
+            // *element - zero or more (bypass allows zero, loop handles more)
+            return new BypassElement(new LoopElement(child));
         } else if (min === 1 && max === null) {
-            // 1*element - one or more  
-            return new SequenceElement([child, new LoopElement(child)]);
+            // 1*element - one or more (loop alone requires at least one)
+            return new LoopElement(child);
+        } else if (min > 1 && max === null) {
+            // n*element - n or more (n required + zero or more additional)
+            const requiredElements = Array(min - 1).fill(null).map(() => child);
+            return new SequenceElement([...requiredElements, new LoopElement(child)]);
         } else if (min === 0 && max === 1) {
-            // [element] - optional
+            // *1element - optional (zero or one)
             return new BypassElement(child);
         } else if (min === max && min > 1) {
             // nElement - exact count (e.g., 8HEXDIG)
@@ -107,8 +106,24 @@ class ASTTransformer {
         } else if (min === 1 && max === 1) {
             // 1element - exactly one (no change needed)
             return child;
+        } else if (min === 0 && max === 0) {
+            // 0element - zero exactly (empty sequence)
+            return new SequenceElement([]);
+        } else if (min === 0 && max > 0) {
+            // 0*n - zero to n (bypass + loop, treating upper bound as unlimited for now)
+            return new BypassElement(new LoopElement(child));
+        } else if (min > 0 && max > min) {
+            // n*m - n to m range (n required + additional loop, treating upper bound as unlimited for now) 
+            if (min === 1) {
+                // 1*m - one or more (loop alone requires at least one)
+                return new LoopElement(child);
+            } else {
+                // n*m where n > 1 - n required + zero or more additional
+                const requiredElements = Array(min - 1).fill(null).map(() => child);
+                return new SequenceElement([...requiredElements, new LoopElement(child)]);
+            }
         } else {
-            // For other patterns (min-max ranges), create a more complex structure
+            // For other patterns, create a more complex structure
             // This could be enhanced further based on specific needs
             console.warn(`Unhandled repetition pattern: ${min}-${max}, treating as loop`);
             return new LoopElement(child);

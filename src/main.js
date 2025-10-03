@@ -1,7 +1,19 @@
 /**
  * Main Application Logic
  * 
- * Coordinates the parsing, rendering, and HTML generation process
+ * Coordinates the parsing, rendering,            try {
+                // Render SVG for this rule and get layout element
+                const renderResult = renderer.render(rule.expression, true);
+                
+                // Create enriched rule with all data in one place
+                enrichedRules.set(name, {
+                    name: rule.name,
+                    original: rule.original,
+                    expression: rule.expression,
+                    svg: renderResult.svg,
+                    debugString: renderResult.layoutElement.toString()
+                });
+            } catch (error) {eration process
  */
 
 const AbnfParser = require('./abnf-parser');
@@ -74,16 +86,16 @@ class ABNFToRailroad {
         
         for (const [name, rule] of rules) {
             try {
-                // Generate SVG for this rule
-                const svg = this.renderer.render(rule.expression);
+                // Generate SVG for this rule and get layout element
+                const renderResult = this.renderer.render(rule.expression, true);
                 
                 // Create enriched rule with all data in one place
                 enrichedRules.set(name, {
                     name: rule.name,
                     original: rule.original,
                     expression: rule.expression,
-                    svg: svg,
-                    debugString: rule.expression.toDebugString ? rule.expression.toDebugString() : 'no-debug'
+                    svg: renderResult.svg,
+                    debugString: renderResult.layoutElement.toString()
                 });
             } catch (error) {
                 console.error(`Error rendering SVG for rule ${name}:`, error);
@@ -92,7 +104,7 @@ class ABNFToRailroad {
                     original: rule.original,
                     expression: rule.expression,
                     svg: `<p>Error rendering diagram for rule: ${name}</p>`,
-                    debugString: rule.expression.toDebugString ? rule.expression.toDebugString() : 'error'
+                    debugString: rule.expression.toString ? rule.expression.toString() : 'error'
                 });
             }
         }

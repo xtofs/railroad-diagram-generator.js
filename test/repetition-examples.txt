@@ -1,0 +1,119 @@
+
+
+    85:               "/" *( segment-nz "/" )
+   125: compoundKey      = OPEN keyValuePair *( COMMA keyValuePair ) CLOSE
+   128: keyPathSegments  = 1*( "/" keyPathLiteral )
+   129: keyPathLiteral   = *pchar
+   185: ordinalIndex = "/" [ "-" ] 1*DIGIT
+   238: functionParameters = OPEN [ BWS functionParameter *( BWS COMMA BWS functionParameter ) ] BWS CLOSE
+   244:             entitySetName *( COMMA entitySetName )
+   252: queryOptions = queryOption *( "&" queryOption )
+   258: batchOptions = batchOption *( "&" batchOption )
+   262: metadataOptions = metadataOption *( "&" metadataOption )
+   266: entityOptions  = *( entityIdOption "&" ) id *( "&" entityIdOption )
+   269: entityCastOptions = *( entityCastOption "&" ) id *( "&" entityCastOption )
+   292: compute          = ( "$compute" / "compute" ) EQ computeItem *( COMMA computeItem )
+   296: expand            = ( "$expand" / "expand" ) EQ expandItem *( COMMA expandItem )
+   302:                       [ ref   [ OPEN expandRefOption   *( SEMI expandRefOption   ) CLOSE ]
+   303:                       / count [ OPEN expandCountOption *( SEMI expandCountOption ) CLOSE ]
+   304:                       /         OPEN expandOption      *( SEMI expandOption      ) CLOSE
+   323: levels = ( "$levels" / "levels" ) EQ ( oneToNine *DIGIT / "max" )
+   327: orderby     = ( "$orderby" / "orderby" ) EQ orderbyItem *( COMMA orderbyItem )
+   330: skip = ( "$skip" / "skip" ) EQ 1*DIGIT
+   331: top  = ( "$top"  / "top"  ) EQ 1*DIGIT
+   333: index  = ( "$index" / "index" ) EQ [ "-" ] 1*DIGIT
+   339:          / 1*pchar "/" 1*pchar ; <a data service specific value indicating a
+   345: schemaversion   = ( "$schemaversion" / "schemaversion" ) EQ ( STAR / 1*unreserved )
+   365: searchPhrase = quotation-mark 1*( qchar-no-AMP-DQUOTE / SP ) quotation-mark
+   374: searchWord = searchChar *( searchChar / SQUOTE )
+   375: searchChar = unreserved / pct-encoded-no-DQUOTE / "!" / "*" / "+" / "," / ":" / "@" / "/" / "?" / "$" / "="
+   377: searchExpr-incomplete = SQUOTE *( SQUOTE-in-string / qchar-no-AMP-SQUOTE / quotation-mark / SP ) SQUOTE
+   380: select         = ( "$select" / "select" ) EQ selectItem *( COMMA selectItem )
+   392:                / ( primitiveColProperty / primitiveColAnnotationInQuery ) [ OPEN selectOptionPC *( SEMI selectOptionPC ) CLOSE ]
+   394:                / selectPath [ OPEN selectOption *( SEMI selectOption ) CLOSE
+   410: parameterNames = parameterName *( COMMA parameterName )
+   412: deltatoken = "$deltatoken" EQ 1*( qchar-no-AMP )
+   414: skiptoken = "$skiptoken" EQ 1*( qchar-no-AMP )
+   424: customName        = qchar-no-AMP-EQ-AT-DOLLAR *( qchar-no-AMP-EQ )
+   425: customValue       = *( qchar-no-AMP )
+   442:                 / singletonEntity [ navigation *( containmentNavigation ) [ "/" qualifiedEntityTypeName ] ] [ selectList ]
+   448: entitySet = entitySetName *( containmentNavigation ) [ "/" qualifiedEntityTypeName ]
+   451: navigation            = *( "/" complexProperty [ "/" qualifiedComplexTypeName ] ) "/" navigationProperty
+   453: selectList         = OPEN [ selectListItem *( COMMA selectListItem ) ] CLOSE
+   577: collectionPathExpr = count [ OPEN expandCountOption *( SEMI expandCountOption ) CLOSE ]
+   601: functionExprParameters = OPEN [ BWS functionExprParameter *( BWS COMMA BWS functionExprParameter ) ] BWS CLOSE
+   685:                         *( COMMA BWS boolCommonExpr BWS COLON BWS commonExpr BWS ) CLOSE
+   688: listExpr  = OPEN BWS [ primitiveLiteral BWS *( COMMA BWS primitiveLiteral BWS ) ] CLOSE
+   729:         [ valueInUrl *( value-separator valueInUrl ) ]
+   733:          [ member *( value-separator member ) ]
+   752: stringInUrl = quotation-mark *charInJSON quotation-mark
+   804: namespace     = namespacePart *( "." namespacePart )
+   816: odataIdentifier             = identifierLeadingCharacter *127identifierCharacter
+   954: binaryValue   = *(4base64char) [ base64b16  / base64b8 ]
+   962: decimalLiteral = [ SIGN ]  1*DIGIT [ "." 1*DIGIT ] [ "e" [ SIGN ]  1*DIGIT ] / nanInfinity
+   963: decimalValue   = ["+"/"-"] 1*DIGIT [ "." 1*DIGIT ] [ "e" ["+"/"-"] 1*DIGIT ] / nanInfinity
+   973: byte         = 1*3DIGIT            ; numbers in the range from 0 to 255
+   975: sbyteLiteral = [ SIGN ]  1*3DIGIT  ; numbers in the range from -128 to 127
+   976: sbyteValue   = ["+"/"-"] 1*3DIGIT  ; numbers in the range from -128 to 127
+   977: int16Literal = [ SIGN ]  1*5DIGIT  ; numbers in the range from -32768 to 32767
+   978: int16Value   = ["+"/"-"] 1*5DIGIT  ; numbers in the range from -32768 to 32767
+   979: int32Literal = [ SIGN ]  1*10DIGIT ; numbers in the range from -2147483648 to 2147483647
+   980: int32Value   = ["+"/"-"] 1*10DIGIT ; numbers in the range from -2147483648 to 2147483647
+   981: int64Literal = [ SIGN ]  1*19DIGIT ; numbers in the range from -9223372036854775808 to 9223372036854775807
+   982: int64Value   = ["+"/"-"] 1*19DIGIT ; numbers in the range from -9223372036854775808 to 9223372036854775807
+   984: stringLiteral    = SQUOTE *( SQUOTE-in-string / pchar-no-SQUOTE ) SQUOTE
+   995: durationValue = [ "-" ] "P" [ 1*DIGIT "D" ] [ "T" [ 1*DIGIT "H" ] [ 1*DIGIT "M" ] [ 1*DIGIT [ "." 1*DIGIT ] "S" ] ]
+  1004: year  = [ "-" ] ( "0" 3DIGIT / oneToNine 3*DIGIT )
+  1014: fractionalSeconds = 1*12DIGIT
+  1016: enumLiteral     = [ qualifiedEnumTypeName ] SQUOTE singleEnumLiteral *( COMMA singleEnumLiteral ) SQUOTE
+  1018: enumValue         = singleEnumValue *( "," singleEnumValue )
+  1023: collectionLiteral     = "GeometryCollection(" geoLiteral *( COMMA geoLiteral ) CLOSE
+  1035: lineStringData        = OPEN positionLiteral 1*( COMMA positionLiteral ) CLOSE
+  1039: multiLineStringLiteral     = "MultiLineString(" [ lineStringData *( COMMA lineStringData ) ] CLOSE
+  1043: multiPointLiteral     = "MultiPoint(" [ pointData *( COMMA pointData ) ] CLOSE
+  1047: multiPolygonLiteral     = "MultiPolygon(" [ polygonData *( COMMA polygonData ) ] CLOSE
+  1051: sridLiteral      = "SRID" EQ 1*5DIGIT SEMI
+  1059: polygonData        = OPEN ringLiteral *( COMMA ringLiteral ) CLOSE
+  1060: ringLiteral        = OPEN positionLiteral *( COMMA positionLiteral ) CLOSE
+  1093: request-id  = 1*unreserved
+  1098: odata-error      = "OData-Error"      ":" OWS "{" DQUOTE %s"code" DQUOTE ":" *( VCHAR / SP )
+  1100: odata-maxversion = "OData-MaxVersion" ":" OWS 1*DIGIT "." 1*DIGIT
+  1103: prefer     = "Prefer" ":" OWS preference *( OWS "," OWS preference )
+  1115:            ; / ( parameter / token ) *( OWS ";" [ OWS ( parameter / token ) ] )
+  1124: annotationsList      = annotationIdentifier *("," annotationIdentifier)
+  1132: maxpagesizePreference = [ "odata." ] "maxpagesize" EQ-h oneToNine *DIGIT
+  1142: waitPreference = "wait" EQ-h 1*DIGIT
+  1145: ;token          = 1*tchar
+  1146: ;tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+  1149: ;quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+  1154: OWS   = *( SP / HTAB )  ; "optional" whitespace
+  1155: BWS-h = *( SP / HTAB )  ; "bad" whitespace in header values
+  1163: RWS = 1*( SP / HTAB / "%20" / "%09" )  ; "required" whitespace
+  1164: BWS =  *( SP / HTAB / "%20" / "%09" )  ; "bad" whitespace
+  1173: STAR   = "*" / "%2A"
+  1196: scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+  1198: userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
+  1200: port          = *DIGIT
+  1202: IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+  1206:                  / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+  1207:                  / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+  1208:                  / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+  1209:                  / [ *4( h16 ":" ) h16 ] "::"              ls32
+  1210:                  / [ *5( h16 ":" ) h16 ] "::"              h16
+  1211:                  / [ *6( h16 ":" ) h16 ] "::"
+  1212: h16           = 1*4HEXDIG
+  1220: reg-name      = *( unreserved / pct-encoded / sub-delims )
+  1226: path-abempty  = *( "/" segment )
+  1227: path-absolute = "/" [ segment-nz *( "/" segment ) ]
+  1228: ;path-noscheme = segment-nz-nc *( "/" segment )
+  1229: path-rootless = segment-nz *( "/" segment )
+  1231: segment       = *pchar
+  1232: segment-nz    = 1*pchar
+  1233: ;segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" ) ; non-zero-length segment without any colon ":"
+  1235: query         = *( pchar / "/" / "?" )
+  1236: fragment      = *( pchar / "/" / "?" )
+  1241: ;sub-delims    = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+  1243: other-delims   = "!" /                   "(" / ")" / "*" / "+" / "," / ";"
+  1270: IRI-in-header = 1*( VCHAR / obs-text )
+  1271: IRI-in-query  = 1*qchar-no-AMP
+  1286: ;LWSP = *(WSP / CRLF WSP)

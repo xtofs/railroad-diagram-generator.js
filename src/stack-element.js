@@ -1,18 +1,18 @@
-const Element = require('./element');
+const LayoutElement = require('./element');
 const { Direction } = require('./track-builder');
 
 /**
  * Stack element (used for alternatives)
- * @extends Element
+ * @extends LayoutElement
  */
-class StackElement extends Element {
+class StackElement extends LayoutElement {
     /**
      * Create a stack element for alternative paths
-     * @param {Element[]} elements - Array of alternative elements
+     * @param {LayoutElement[]} elements - Array of alternative elements
      */
     constructor(elements) {
         super();
-        /** @type {Element[]} */
+        /** @type {LayoutElement[]} */
         this.children = elements;
         
         // Layout will be calculated in layout() method
@@ -106,6 +106,15 @@ class StackElement extends Element {
                 currentY += child.height + 1;
             }
         });
+    }
+
+    /**
+     * Convert to debug string representation
+     * @returns {string} Debug string like 'stack(nonterminal("A"), nonterminal("B"))'
+     */
+    toString() {
+        const childrenDesc = this.children.map(child => child.toString()).join(', ');
+        return `stack(${childrenDesc})`;
     }
 }
 

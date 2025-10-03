@@ -1,18 +1,18 @@
-const Element = require('./element');
+const LayoutElement = require('./element');
 const { Direction } = require('./track-builder');
 
 /**
  * Bypass element (optional element)
- * @extends Element
+ * @extends LayoutElement
  */
-class BypassElement extends Element {
+class BypassElement extends LayoutElement {
     /**
      * Create a bypass element for optional elements
-     * @param {Element} element - The element that can be bypassed
+     * @param {LayoutElement} element - The element that can be bypassed
      */
     constructor(element) {
         super();
-        /** @type {Element} */
+        /** @type {LayoutElement} */
         this.child = element;
         
         // Layout will be calculated in layout() method
@@ -73,6 +73,14 @@ class BypassElement extends Element {
             .start(childX + this.child.width, this.baseline, Direction.EAST)
             .forward(this.width - (childX + this.child.width))
             .finish('through-right');
+    }
+
+    /**
+     * Convert to debug string representation
+     * @returns {string} Debug string like 'bypass(nonterminal("X"))'
+     */
+    toString() {
+        return `bypass(${this.child.toString()})`;
     }
 }
 

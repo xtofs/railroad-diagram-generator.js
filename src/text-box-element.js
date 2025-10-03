@@ -1,4 +1,4 @@
-const Element = require('./element');
+const LayoutElement = require('./element');
 const { createCanvas } = require('canvas');
 
 /**
@@ -22,10 +22,10 @@ function measureText(text, fontSize = 14, fontFamily = 'monospace') {
 
 /**
  * Base class for text box elements (terminals and nonterminals)
- * @extends Element
+ * @extends LayoutElement
  * @abstract
  */
-class TextBoxElement extends Element {
+class TextBoxElement extends LayoutElement {
     /**
      * Create a text box expression
      * @param {string} text - Text to display in the box (literal ABNF syntax for terminals)

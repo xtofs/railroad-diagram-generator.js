@@ -12,6 +12,14 @@ class TerminalElement extends TextBoxElement {
     constructor(text) {
         super(text, 'terminal');
     }
+
+    /**
+     * Convert to debug string representation
+     * @returns {string} Debug string like 'terminal("x")'
+     */
+    toString() {
+        return `terminal(${JSON.stringify(this.text)})`;
+    }
 }
 
 module.exports = TerminalElement;

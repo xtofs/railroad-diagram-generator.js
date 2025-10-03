@@ -1,11 +1,20 @@
 /**
  * ABNF Parser with Tokenizer
  * 
- * parses ABNF (Augmented Backus-Naur Form) grammar files and converts them
+ * parses ABNF (Augmented Backus-Naur Form) grammar and converts them
  * to Expression trees that can generate railroad diagrams.
  * 
  * ABNF format reference: RFC 5234
  */
+
+const {
+    TerminalNode,
+    NonterminalNode,
+    SequenceNode,
+    AlternationNode,
+    OptionalNode,
+    RepetitionNode
+} = require('./ast-node');
 
 /**
  * Custom error class for ABNF parsing errors with position information
@@ -43,9 +52,11 @@ class ABNFParseError extends Error {
 
 /**
  * @typedef {Object} ASTNode
- * @property {string} type - Node type ('terminal', 'nonterminal', 'sequence', 'stack', 'bypass', 'loop')
+ * @property {string} type - Node type ('terminal', 'nonterminal', 'sequence', 'alternation', 'optional', 'repetition')
  * @property {string} [text] - Text content - for terminals: literal ABNF syntax; for nonterminals: rule name
  * @property {ASTNode[]} [elements] - Child nodes (always array, even for single child)
+ * @property {number} [min] - Minimum repetition count (for repetition nodes)
+ * @property {number|null} [max] - Maximum repetition count (for repetition nodes, null means unbounded)
  * @property {Position} [position] - Source position information
  */
 
@@ -81,8 +92,8 @@ class ABNFTokenizer {
             // Hex/decimal values per RFC 5234: concatenation OR range, not mixed
             '(?<hexval>%x[0-9A-Fa-f]+(?:(?:\\.[0-9A-Fa-f]+)+|(?:-[0-9A-Fa-f]+))?)',
             '(?<decval>%d[0-9]+(?:(?:\\.[0-9]+)+|(?:-[0-9]+))?)',
-            // Repetition counts (must come before standalone *)
-            '(?<repetition>[0-9]+\\*[0-9]*|[0-9]*\\*[0-9]+)',
+            // Repetition counts (covers all RFC 5234 forms: *element, 1*element, *1element, 4element, 2*3element)
+            '(?<repetition>[0-9]+\\*[0-9]*|[0-9]*\\*[0-9]+|[0-9]+(?=[a-zA-Z%("\'\\[\\*]))',
             // Standalone asterisk for zero-or-more
             '(?<asterisk>\\*)',
             // Identifiers (rule names)
@@ -93,9 +104,7 @@ class ABNFTokenizer {
             '(?<lparen>\\()',
             '(?<rparen>\\))',
             '(?<lbracket>\\[)',
-            '(?<rbracket>\\])',
-            // Numbers
-            '(?<number>[0-9]+)'
+            '(?<rbracket>\\])'
         ].join('|'), 'g');
     }
 
@@ -266,8 +275,7 @@ class ABNFParser {
                     // Parse the rule expression from its tokens
                     const expression = this._parseTokenSequence(ruleTokens.tokens);
                     
-                    // Add debug string functionality to the parsed expression
-                    addDebugStringToElement(expression);
+
                     
                     // Reconstruct original rule text for debugging/display
                     const originalRule = this._reconstructRuleText(originalContent, ruleStartLine, ruleTokens.tokens);
@@ -405,11 +413,7 @@ class ABNFParser {
 
         if (alternatives.length > 1) {
             return {
-                element: { 
-                    type: 'stack', 
-                    elements: alternatives,
-                    position: startToken ? { line: startToken.line, column: startToken.column } : undefined
-                },
+                element: new AlternationNode(alternatives),
                 nextIndex: index
             };
         } else {
@@ -442,11 +446,7 @@ class ABNFParser {
 
         if (elements.length > 1) {
             return {
-                element: { 
-                    type: 'sequence', 
-                    elements: elements,
-                    position: startToken ? { line: startToken.line, column: startToken.column } : undefined
-                },
+                element: new SequenceNode(elements),
                 nextIndex: index
             };
         } else if (elements.length === 1) {
@@ -475,8 +475,14 @@ class ABNFParser {
             const repToken = tokens[index].value;
             const repMatch = repToken.match(/^(\d*)\*(\d*)$/);
             if (repMatch) {
+                // Pattern like 1*5, *5, 1*, or * (asterisk patterns)
                 min = repMatch[1] ? parseInt(repMatch[1]) : 0;
                 max = repMatch[2] ? parseInt(repMatch[2]) : null;
+            } else if (/^\d+$/.test(repToken)) {
+                // Exact count pattern like 4, 8, etc.
+                const count = parseInt(repToken);
+                min = count;
+                max = count;
             }
             index++;
         } else if (index < tokens.length && tokens[index].type === 'asterisk') {
@@ -485,20 +491,6 @@ class ABNFParser {
             min = 0;
             max = null;
             index++;
-        } else if (index < tokens.length && tokens[index].type === 'number') {
-            const num = parseInt(tokens[index].value);
-            // Check for number followed by * (like "1*")
-            if (index + 1 < tokens.length && tokens[index + 1].value === '*') {
-                hasRepetition = true;
-                min = num;
-                index += 2; // Skip number and *
-            } else {
-                // Check for exact count repetition (like "4HEXDIG")
-                hasRepetition = true;
-                min = num;
-                max = num;
-                index++; // Skip just the number
-            }
         }
 
         const result = this._parseElement(tokens, index);
@@ -510,43 +502,9 @@ class ABNFParser {
             const startToken = tokens[index - 1]; // Get token position before we parsed the element
             const position = startToken ? { line: startToken.line, column: startToken.column } : undefined;
             
-            if (min === 0 && max === null) {
-                // *element - zero or more
-                element = { 
-                    type: 'loop', 
-                    elements: [element],
-                    position: position
-                };
-            } else if (min === 1 && max === null) {
-                // 1*element - one or more
-                const baseElement = element;
-                const loopElement = { 
-                    type: 'loop', 
-                    elements: [element],
-                    position: position
-                };
-                element = { 
-                    type: 'sequence', 
-                    elements: [baseElement, loopElement],
-                    position: position
-                };
-            } else if (min === 0 && max === 1) {
-                // *1element or [element] - optional
-                element = { 
-                    type: 'bypass', 
-                    elements: [element],
-                    position: position
-                };
-            } else if (min === max && min > 1) {
-                // nElement - exact count (e.g., 8HEXDIG, 4HEXDIG)
-                element = {
-                    type: 'repetition',
-                    min: min,
-                    max: max,
-                    elements: [element],
-                    position: position
-                };
-            }
+            // All repetition patterns should generate 'repetition' AST nodes
+            // The transformer will convert these to appropriate layout elements
+            element = new RepetitionNode(min, max, element);
         }
 
         return { element: element, nextIndex: index };
@@ -571,23 +529,14 @@ class ABNFParser {
             case 'sstring':
                 // Terminal string - preserve literal ABNF syntax
                 return {
-                    element: { 
-                        type: 'terminal', 
-                        text: token.value, // Preserve literal ABNF syntax
-                        line: token.line,
-                        column: token.column
-                    },
+                    element: new TerminalNode(token.value),
                     nextIndex: index + 1
                 };
 
             case 'identifier':
                 // Non-terminal rule reference
                 return {
-                    element: { 
-                        type: 'nonterminal', 
-                        text: token.value,
-                        position: { line: token.line, column: token.column }
-                    },
+                    element: new NonterminalNode(token.value),
                     nextIndex: index + 1
                 };
 
@@ -595,12 +544,7 @@ class ABNFParser {
             case 'decval':
                 // Hex or decimal values - preserve literal ABNF syntax
                 return {
-                    element: { 
-                        type: 'terminal', 
-                        text: token.value, // Preserve literal ABNF syntax
-                        line: token.line,
-                        column: token.column
-                    },
+                    element: new TerminalNode(token.value),
                     nextIndex: index + 1
                 };
 
@@ -628,11 +572,7 @@ class ABNFParser {
                     throw new ABNFParseError('Missing closing bracket', lbracketToken.line, lbracketToken.column, lbracketToken);
                 }
                 return {
-                    element: { 
-                        type: 'bypass', 
-                        elements: [optResult.element],
-                        position: { line: lbracketToken.line, column: lbracketToken.column }
-                    },
+                    element: new OptionalNode(optResult.element),
                     nextIndex: optResult.nextIndex + 1 // Skip ']'
                 };
 
@@ -643,52 +583,6 @@ class ABNFParser {
 
 }
 
-/**
- * Add debug string functionality to DiagramElement objects
- * @param {ASTNode} element - The DiagramElement to enhance
- * @returns {ASTNode} The same element with added toDebugString method
- */
-function addDebugStringToElement(element) {
-    if (!element || typeof element !== 'object') {
-        return element;
-    }
 
-    // Add toDebugString method if it doesn't exist
-    if (!element.toDebugString) {
-        element.toDebugString = function() {
-            switch (this.type) {
-                case 'terminal':
-                    return `terminal("${this.text}")`;
-                    
-                case 'nonterminal':
-                    return `nonterminal("${this.text}")`;
-                    
-                case 'sequence':
-                    const seqElements = this.elements.map(el => el.toDebugString()).join(', ');
-                    return `sequence(${seqElements})`;
-                    
-                case 'stack':
-                    const stackElements = this.elements.map(el => el.toDebugString()).join(', ');
-                    return `stack(${stackElements})`;
-                    
-                case 'bypass':
-                    return `bypass(${this.elements[0].toDebugString()})`;
-                    
-                case 'loop':
-                    return `loop(${this.elements[0].toDebugString()})`;
-                    
-                default:
-                    return `unknown(${this.type})`;
-            }
-        };
-    }
-
-    // Recursively add to child elements
-    if (element.elements && Array.isArray(element.elements)) {
-        element.elements.forEach(child => addDebugStringToElement(child));
-    }
-
-    return element;
-}
 
 module.exports = ABNFParser;

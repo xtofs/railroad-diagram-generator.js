@@ -1,18 +1,18 @@
-const Element = require('./element');
+const LayoutElement = require('./element');
 const { Direction } = require('./track-builder');
 
 /**
- * Loop element (repetition)
- * @extends Element
+ * Loop element (used for repetition)
+ * @extends LayoutElement
  */
-class LoopElement extends Element {
+class LoopElement extends LayoutElement {
     /**
      * Create a loop element for repeating elements
-     * @param {Element} element - The element to repeat
+     * @param {LayoutElement} element - The element to repeat
      */
     constructor(element) {
         super();
-        /** @type {Element} */
+        /** @type {LayoutElement} */
         this.child = element;
         
         // Layout will be calculated in layout() method
@@ -73,6 +73,14 @@ class LoopElement extends Element {
             .start(childX + this.child.width, this.baseline, Direction.EAST)
             .forward(this.width - (childX + this.child.width))
             .finish('through-right');
+    }
+
+    /**
+     * Convert to debug string representation
+     * @returns {string} Debug string like 'loop(nonterminal("X"))'
+     */
+    toString() {
+        return `loop(${this.child.toString()})`;
     }
 }
 

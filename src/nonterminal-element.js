@@ -12,6 +12,14 @@ class NonterminalElement extends TextBoxElement {
     constructor(text) {
         super(text, 'nonterminal', false);
     }
+
+    /**
+     * Convert to debug string representation
+     * @returns {string} Debug string like 'nonterminal("X")'
+     */
+    toString() {
+        return `nonterminal(${JSON.stringify(this.text)})`;
+    }
 }
 
 module.exports = NonterminalElement;
