@@ -1,0 +1,56 @@
+Unique ABNF Repetition Patterns from odata-abnf-construction-rules.txt
+================================================================
+
+## Rules with `[number]*` pattern (minimum repetitions):
+
+1. **keyPathSegments** (line 128) - `1*( "/" keyPathLiteral )` - Pattern: 1*(expression)
+2. **ordinalIndex** (line 185) - `1*DIGIT` - Pattern: 1*DIGIT
+3. **byte** (line 973) - `1*3DIGIT` - Pattern: 1*3DIGIT
+4. **int16Literal** (line 977) - `1*5DIGIT` - Pattern: 1*5DIGIT
+5. **int32Literal** (line 979) - `1*10DIGIT` - Pattern: 1*10DIGIT
+6. **fractionalSeconds** (line 1014) - `1*12DIGIT` - Pattern: 1*12DIGIT
+7. **int64Literal** (line 981) - `1*19DIGIT` - Pattern: 1*19DIGIT
+8. **year** (line 1004) - `3*DIGIT` - Pattern: 3*DIGIT
+9. **h16** (line 1212) - `1*4HEXDIG` - Pattern: 1*4HEXDIG
+10. **schemaversion** (line 345) - `1*unreserved` - Pattern: 1*unreserved
+11. **searchPhrase** (line 365) - `1*( qchar-no-AMP-DQUOTE / SP )` - Pattern: 1*(complex expression)
+12. **request-id** (line 1093) - `1*unreserved` - Pattern: 1*unreserved (duplicate of #10)
+13. **RWS** (line 1163) - `1*( SP / HTAB / "%20" / "%09" )` - Pattern: 1*(whitespace alternatives)
+14. **IPvFuture** (line 1202) - `1*HEXDIG` - Pattern: 1*HEXDIG
+15. **segment-nz** (line 1232) - `1*pchar` - Pattern: 1*pchar
+16. **IRI-in-header** (line 1270) - `1*( VCHAR / obs-text )` - Pattern: 1*(character alternatives)
+17. **IRI-in-query** (line 1271) - `1*qchar-no-AMP` - Pattern: 1*qchar-no-AMP
+
+## Rules with `*[number]` pattern (maximum repetitions):
+
+1. **odataIdentifier** (line 816) - `*127identifierCharacter` - Pattern: *127element
+2. **IPv6address** (line 1206) - `*1( h16 ":" )` - Pattern: *1(expression)
+3. **IPv6address** (line 1207) - `*2( h16 ":" )` - Pattern: *2(expression)
+4. **IPv6address** (line 1208) - `*3( h16 ":" )` - Pattern: *3(expression)
+5. **IPv6address** (line 1209) - `*4( h16 ":" )` - Pattern: *4(expression)
+6. **IPv6address** (line 1210) - `*5( h16 ":" )` - Pattern: *5(expression)
+7. **IPv6address** (line 1211) - `*6( h16 ":" )` - Pattern: *6(expression)
+
+## Summary of Unique Patterns:
+
+**Minimum Repetition Patterns (`n*`):**
+- `1*(expression)` - One or more of a complex expression
+- `1*DIGIT` - One or more digits
+- `1*3DIGIT` - One to three digits
+- `1*4HEXDIG` - One to four hex digits
+- `1*5DIGIT` - One to five digits
+- `1*10DIGIT` - One to ten digits
+- `1*12DIGIT` - One to twelve digits
+- `1*19DIGIT` - One to nineteen digits
+- `3*DIGIT` - Three or more digits
+- `1*HEXDIG` - One or more hex digits
+- `1*unreserved` - One or more unreserved characters
+- `1*pchar` - One or more path characters
+- `1*qchar-no-AMP` - One or more query characters (no ampersand)
+
+**Maximum Repetition Patterns (`*n`):**
+- `*127element` - Zero to 127 of an element
+- `*1(expression)` through `*6(expression)` - Zero to N of an expression
+
+Total unique minimum patterns: 13
+Total unique maximum patterns: 7
